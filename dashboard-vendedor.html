@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Vendedor - Comercializadora XYZ</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <div class="w-64 bg-blue-800 text-white flex flex-col">
+    <div class="p-5 border-b border-blue-700">
+      <div class="flex items-center space-x-3">
+        <i class="fas fa-store text-2xl"></i>
+        <h2 class="text-xl font-bold">Vendedor</h2>
+      </div>
+    </div>
+    <nav class="flex-1 py-4">
+      <a href="#" onclick="showSection('ventas')" class="flex items-center px-5 py-3 hover:bg-blue-700 transition" id="nav-ventas">
+        <i class="fas fa-shopping-cart w-5 mr-3"></i> Registrar Venta
+      </a>
+      <a href="#" onclick="showSection('productos')" class="flex items-center px-5 py-3 hover:bg-blue-700 transition">
+        <i class="fas fa-boxes w-5 mr-3"></i> Consultar Productos
+      </a>
+      <a href="#" onclick="showSection('historial')" class="flex items-center px-5 py-3 hover:bg-blue-700 transition">
+        <i class="fas fa-history w-5 mr-3"></i> Mi Historial
+      </a>
+    </nav>
+    <div class="p-4 border-t border-blue-700">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm" id="vendedor-name">Vendedor</p>
+          <p class="text-xs text-blue-300">vendedor@comercializadora.com</p>
+        </div>
+        <a href="index.html" class="text-blue-300 hover:text-white">
+          <i class="fas fa-sign-out-alt"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto">
+    <div class="bg-white shadow-sm p-4 sticky top-0 z-10">
+      <h1 class="text-2xl font-bold text-gray-800" id="section-title">Registrar Venta</h1>
+    </div>
+
+    <div class="p-6" id="main-content">
+      <!-- Registrar Venta Section con Carrito -->
+      <div id="ventas-section">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Panel izquierdo: Productos -->
+          <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-xl font-bold mb-4">Agregar Productos</h3>
+            
+            <div id="promociones-vendedor" class="bg-yellow-50 rounded-lg p-3 mb-4 text-sm"></div>
+            
+            <label class="block text-sm font-medium mb-2">Producto</label>
+            <select id="producto-select" class="w-full border rounded-lg p-2 mb-4" onchange="actualizarInfoProducto()">
+              <option value="">Seleccione un producto</option>
+            </select>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div><label class="block text-sm font-medium mb-2">Precio</label><input type="text" id="precio-unitario" readonly class="w-full border rounded-lg p-2 bg-gray-100"></div>
+              <div><label class="block text-sm font-medium mb-2">Stock</label><input type="text" id="stock-disponible" readonly class="w-full border rounded-lg p-2 bg-gray-100"></div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div><label class="block text-sm font-medium mb-2">Cantidad</label><input type="number" id="cantidad" class="w-full border rounded-lg p-2" onchange="calcularSubtotalItem()"></div>
+              <div><label class="block text-sm font-medium mb-2">Subtotal</label><input type="text" id="subtotal-item" readonly class="w-full border rounded-lg p-2 bg-gray-100"></div>
+            </div>
+            
+            <button onclick="agregarAlCarrito()" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+              <i class="fas fa-cart-plus mr-2"></i>Agregar al Carrito
+            </button>
+          </div>
+          
+          <!-- Panel derecho: Carrito -->
+          <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-xl font-bold mb-4">Carrito de Compras</h3>
+            <div id="carrito-items" class="max-h-96 overflow-y-auto mb-4 space-y-2"></div>
+            
+            <div class="border-t pt-4 space-y-2">
+              <div class="flex justify-between"><span>Subtotal:</span><span id="carrito-subtotal">Bs. 0</span></div>
+              <div class="flex justify-between"><span>Descuento:</span><span id="carrito-descuento">Bs. 0</span></div>
+              <div class="flex justify-between font-bold text-lg"><span>Total:</span><span id="carrito-total">Bs. 0</span></div>
+            </div>
+            
+            <label class="block text-sm font-medium mb-2 mt-4">Cliente</label>
+            <select id="cliente-select" class="w-full border rounded-lg p-2 mb-4" onchange="actualizarDescuentoCarrito()">
+              <option value="">Cliente sin registrar</option>
+            </select>
+            
+            <!-- Botón actualizado para usar la nueva función con factura -->
+            <button onclick="finalizarVentaConFactura()" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700">
+              <i class="fas fa-file-invoice mr-2"></i>Finalizar Venta y Facturar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Productos Section -->
+      <div id="productos-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-6">Catálogo de Productos</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="productos-catalogo"></div>
+        </div>
+      </div>
+
+      <!-- Historial Section -->
+      <div id="historial-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-6">Mi Historial de Ventas</h3>
+          <div class="overflow-x-auto"><table class="w-full"><thead class="bg-gray-50"><tr><th class="px-4 py-2">ID</th><th class="px-4 py-2">Producto</th><th class="px-4 py-2">Cantidad</th><th class="px-4 py-2">Total</th><th class="px-4 py-2">Cliente</th><th class="px-4 py-2">Fecha</th></tr></thead><tbody id="historial-ventas"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let productos = JSON.parse(localStorage.getItem('productos')) || [];
+  let ventas = JSON.parse(localStorage.getItem('ventas')) || [];
+  let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+  let carrito = [];
+
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  if (!currentUser || currentUser.role !== 'vendedor') window.location.href = 'login.html';
+  document.getElementById('vendedor-name').innerText = currentUser.name;
+
+  function verificarStockActualizado() {
+    const productosActualizados = JSON.parse(localStorage.getItem('productos')) || [];
+    let stockInsuficiente = false;
+    for (const item of carrito) {
+      const productoActual = productosActualizados.find(p => p.id === item.id);
+      if (!productoActual || productoActual.stock < item.cantidad) {
+        alert(`⚠️ El producto "${item.nombre}" tiene stock insuficiente.\nStock actual: ${productoActual?.stock || 0}\nSolicitado: ${item.cantidad}`);
+        stockInsuficiente = true;
+        if (productoActual) {
+          item.cantidad = Math.min(item.cantidad, productoActual.stock);
+        } else {
+          const index = carrito.indexOf(item);
+          if (index > -1) carrito.splice(index, 1);
+        }
+      }
+    }
+    if (stockInsuficiente) {
+      actualizarCarrito();
+      return false;
+    }
+    productos = productosActualizados;
+    return true;
+  }
+
+  function cargarPromocionesVendedor() {
+    const promociones = JSON.parse(localStorage.getItem('promociones')) || [];
+    const activas = promociones.filter(p => p.activa && new Date(p.fecha_fin) >= new Date());
+    const container = document.getElementById('promociones-vendedor');
+    container.innerHTML = activas.length ? activas.map(p => `🎉 ${p.titulo}: ${p.descripcion}`).join('<br>') : 'No hay promociones activas';
+  }
+
+  function cargarProductosSelect() {
+    const select = document.getElementById('producto-select');
+    select.innerHTML = '<option value="">Seleccione un producto</option>' + productos.map(p => `<option value="${p.id}" data-precio="${p.precio}" data-stock="${p.stock}">${p.nombre} - Bs. ${p.precio}</option>`).join('');
+  }
+
+  function cargarClientesSelect() {
+    const select = document.getElementById('cliente-select');
+    select.innerHTML = '<option value="">Cliente sin registrar</option>' + clientes.map(c => {
+      const años = Math.floor((new Date() - new Date(c.fechaRegistro)) / (1000*60*60*24*365));
+      let descuento = 0;
+      const config = JSON.parse(localStorage.getItem('configDescuentos')) || { año1:10, año3:15, año5:20 };
+      if(años >= 5) descuento = config.año5;
+      else if(años >= 3) descuento = config.año3;
+      else if(años >= 1) descuento = config.año1;
+      return `<option value="${c.id}" data-descuento="${descuento}">${c.nombre} - ${descuento}% descuento</option>`;
+    }).join('');
+  }
+
+  function actualizarInfoProducto() {
+    const select = document.getElementById('producto-select');
+    const opt = select.options[select.selectedIndex];
+    if(opt.value){
+      document.getElementById('precio-unitario').value = `Bs. ${opt.dataset.precio}`;
+      document.getElementById('stock-disponible').value = opt.dataset.stock;
+    } else {
+      document.getElementById('precio-unitario').value = '';
+      document.getElementById('stock-disponible').value = '';
+    }
+    calcularSubtotalItem();
+  }
+
+  function calcularSubtotalItem() {
+    const select = document.getElementById('producto-select');
+    const cantidad = parseInt(document.getElementById('cantidad').value) || 0;
+    if(select.value && cantidad){
+      const precio = parseFloat(select.options[select.selectedIndex].dataset.precio);
+      document.getElementById('subtotal-item').value = `Bs. ${(precio * cantidad).toFixed(2)}`;
+    } else {
+      document.getElementById('subtotal-item').value = '';
+    }
+  }
+
+  function agregarAlCarrito() {
+    const select = document.getElementById('producto-select');
+    const productoId = parseInt(select.value);
+    const cantidad = parseInt(document.getElementById('cantidad').value);
+    if(!productoId || !cantidad || cantidad <= 0){
+      alert('Seleccione producto y cantidad válida');
+      return;
+    }
+    const producto = productos.find(p => p.id === productoId);
+    if(cantidad > producto.stock){
+      alert(`Stock insuficiente. Disponible: ${producto.stock}`);
+      return;
+    }
+    const existente = carrito.find(item => item.id === productoId);
+    if(existente){
+      if(existente.cantidad + cantidad > producto.stock){
+        alert(`No puede agregar más. Stock disponible: ${producto.stock}`);
+        return;
+      }
+      existente.cantidad += cantidad;
+    } else {
+      carrito.push({ id: producto.id, nombre: producto.nombre, precio: producto.precio, cantidad: cantidad });
+    }
+    actualizarCarrito();
+    document.getElementById('cantidad').value = '';
+    document.getElementById('subtotal-item').value = '';
+    alert('Producto agregado al carrito');
+  }
+
+  function actualizarCarrito() {
+    const container = document.getElementById('carrito-items');
+    const subtotal = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    const descuentoPorcentaje = parseInt(document.getElementById('cliente-select')?.options?.[document.getElementById('cliente-select')?.selectedIndex]?.dataset?.descuento) || 0;
+    const descuentoMonto = subtotal * (descuentoPorcentaje / 100);
+    const total = subtotal - descuentoMonto;
+    
+    container.innerHTML = carrito.map(item => `
+      <div class="flex justify-between items-center border-b pb-2">
+        <div><span class="font-semibold">${item.nombre}</span><br><span class="text-sm">${item.cantidad} x Bs. ${item.precio}</span></div>
+        <div><span class="font-bold">Bs. ${(item.precio * item.cantidad).toFixed(2)}</span><button onclick="eliminarDelCarrito(${item.id})" class="ml-3 text-red-600"><i class="fas fa-trash"></i></button></div>
+      </div>
+    `).join('');
+    if(carrito.length === 0) container.innerHTML = '<p class="text-gray-500 text-center py-4">Carrito vacío</p>';
+    
+    document.getElementById('carrito-subtotal').innerText = `Bs. ${subtotal.toFixed(2)}`;
+    document.getElementById('carrito-descuento').innerText = `Bs. ${descuentoMonto.toFixed(2)} (${descuentoPorcentaje}%)`;
+    document.getElementById('carrito-total').innerText = `Bs. ${total.toFixed(2)}`;
+  }
+
+  function eliminarDelCarrito(id) {
+    carrito = carrito.filter(item => item.id !== id);
+    actualizarCarrito();
+  }
+
+  function actualizarDescuentoCarrito() {
+    actualizarCarrito();
+  }
+
+  // NUEVA FUNCIÓN: Finalizar venta con factura y validación de NIT
+  function finalizarVentaConFactura() {
+    if(carrito.length === 0){
+      alert('No hay productos en el carrito');
+      return;
+    }
+    
+    if (!verificarStockActualizado()) {
+      alert('Por favor revise el carrito. Algunos productos tienen stock insuficiente.');
+      return;
+    }
+    
+    const clienteId = document.getElementById('cliente-select').value;
+    const cliente = clientes.find(c => c.id == clienteId);
+    const subtotal = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    const descuentoPorcentaje = parseInt(document.getElementById('cliente-select')?.options?.[document.getElementById('cliente-select')?.selectedIndex]?.dataset?.descuento) || 0;
+    const total = subtotal * (1 - descuentoPorcentaje/100);
+    
+    // Solicitar NIT si el total es mayor a 1000
+    let nitCliente = null;
+    if (total >= 1000) {
+      nitCliente = prompt('⚠️ Requisito Fiscal\nEl monto total supera Bs. 1,000.\nPor favor ingrese el NIT o C.I. del comprador:', cliente?.nit || '');
+      if (!nitCliente) {
+        alert('Es obligatorio registrar NIT/C.I. para montos mayores a Bs. 1,000');
+        return;
+      }
+    }
+    
+    // Guardar datos de la venta para la factura
+    const ventaParaFactura = {
+      productos: carrito.map(item => ({
+        nombre: item.nombre,
+        cantidad: item.cantidad,
+        precio: item.precio
+      })),
+      cliente_nombre: cliente ? cliente.nombre : 'Cliente sin registrar',
+      cliente_nit: nitCliente || cliente?.nit || 'No registrado',
+      total: total,
+      fecha: new Date().toISOString().split('T')[0],
+      hora: new Date().toLocaleTimeString()
+    };
+    
+    localStorage.setItem('venta_actual_factura', JSON.stringify(ventaParaFactura));
+    
+    // Actualizar stock y registrar venta
+    carrito.forEach(item => {
+      const producto = productos.find(p => p.id === item.id);
+      producto.stock -= item.cantidad;
+      
+      const nuevaVenta = {
+        id: ventas.length + 1,
+        producto: item.nombre,
+        cantidad: item.cantidad,
+        total: item.precio * item.cantidad,
+        vendedor: currentUser.name,
+        cliente: cliente ? cliente.nombre : 'Sin registrar',
+        cliente_nit: nitCliente || cliente?.nit,
+        fecha: new Date().toISOString().split('T')[0],
+        descuento_aplicado: descuentoPorcentaje
+      };
+      ventas.push(nuevaVenta);
+    });
+    
+    localStorage.setItem('productos', JSON.stringify(productos));
+    localStorage.setItem('ventas', JSON.stringify(ventas));
+    
+    // Abrir ventana de factura
+    const facturaWindow = window.open('factura.html', '_blank', 'width=800,height=900');
+    
+    // Limpiar carrito
+    carrito = [];
+    actualizarCarrito();
+    cargarProductosSelect();
+    
+    alert('✅ Venta registrada exitosamente. Se abrirá la factura en una nueva ventana.');
+  }
+
+  function cargarProductosCatalogo() {
+    const container = document.getElementById('productos-catalogo');
+    container.innerHTML = productos.map(p => `<div class="border rounded-lg p-4"><i class="fas fa-box text-2xl text-blue-600 mb-2"></i><h4 class="font-bold">${p.nombre}</h4><p class="text-gray-600">Bs. ${p.precio}</p><p class="text-sm ${p.stock < 10 ? 'text-red-600' : 'text-green-600'}">Stock: ${p.stock}</p></div>`).join('');
+  }
+
+  function cargarHistorial() {
+    const misVentas = ventas.filter(v => v.vendedor === currentUser.name);
+    const tbody = document.getElementById('historial-ventas');
+    tbody.innerHTML = misVentas.map(v => `<tr class="border-b"><td class="px-4 py-2">${v.id}</td><td class="px-4 py-2">${v.producto}</td><td class="px-4 py-2">${v.cantidad}</td><td class="px-4 py-2">Bs. ${v.total}</td><td class="px-4 py-2">${v.cliente || 'Sin registrar'}</td><td class="px-4 py-2">${v.fecha}</td></tr>`).join('');
+    if(misVentas.length === 0) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">No hay ventas registradas</td></tr>';
+  }
+
+  function showSection(section) {
+    document.getElementById('ventas-section').classList.add('hidden');
+    document.getElementById('productos-section').classList.add('hidden');
+    document.getElementById('historial-section').classList.add('hidden');
+    document.getElementById(`${section}-section`).classList.remove('hidden');
+    const titles = { ventas:'Registrar Venta', productos:'Consultar Productos', historial:'Mi Historial' };
+    document.getElementById('section-title').innerText = titles[section];
+    if(section === 'productos') cargarProductosCatalogo();
+    if(section === 'historial') cargarHistorial();
+  }
+
+  // Inicializar
+  cargarProductosSelect();
+  cargarClientesSelect();
+  cargarPromocionesVendedor();
+</script>
+</body>
+</html>

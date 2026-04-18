@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Factura de Compra - Comercializadora XYZ</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @media print {
+    body * { visibility: hidden; }
+    #factura-compra, #factura-compra * { visibility: visible; }
+    #factura-compra { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 20px; }
+    .no-print { display: none; }
+  }
+</style>
+</head>
+<body class="bg-gray-100">
+<div class="container mx-auto px-4 py-8">
+  <div class="no-print mb-4 flex justify-end space-x-3">
+    <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-lg"><i class="fas fa-print mr-2"></i>Imprimir</button>
+    <button onclick="window.close()" class="bg-gray-600 text-white px-4 py-2 rounded-lg"><i class="fas fa-times mr-2"></i>Cerrar</button>
+  </div>
+  
+  <div id="factura-compra" class="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
+    <div class="border-b-2 border-gray-300 pb-4 mb-4">
+      <div class="flex justify-between">
+        <div><h1 class="text-2xl font-bold text-purple-600">ORDEN DE COMPRA</h1></div>
+        <div class="text-right"><p class="text-xs text-gray-500">Documento Fiscal</p></div>
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div><p class="text-xs text-gray-500">Proveedor</p><p class="font-semibold" id="proveedor-nombre">-</p><p id="proveedor-nit">NIT: -</p></div>
+      <div><p class="text-xs text-gray-500">Factura N°</p><p class="font-bold text-xl" id="factura-numero">-</p><p id="factura-fecha">-</p></div>
+    </div>
+    
+    <table class="w-full border-collapse mb-6">
+      <thead class="bg-gray-50"><tr><th class="border px-4 py-2">Producto</th><th class="border px-4 py-2">Cantidad</th><th class="border px-4 py-2">Costo Unit.</th><th class="border px-4 py-2">Total</th></tr></thead>
+      <tbody id="detalle-compra"></tbody>
+      <tfoot><tr><td colspan="3" class="border px-4 py-2 text-right font-bold">TOTAL:</td><td class="border px-4 py-2 text-right font-bold text-purple-600" id="total-compra">Bs. 0.00</td></tr></tfoot>
+    </table>
+    
+    <div class="border-t pt-4 text-center text-xs text-gray-400">
+      <p>Comercializadora XYZ - NIT: 123456789</p>
+      <p>Recibido por: <span id="recibido-por"></span></p>
+    </div>
+  </div>
+</div>
+<script>
+  const data = JSON.parse(localStorage.getItem('factura_compra_actual'));
+  if(data){
+    document.getElementById('proveedor-nombre').innerText = data.proveedor;
+    document.getElementById('proveedor-nit').innerHTML = `<strong>NIT:</strong> ${data.proveedor_nit}`;
+    document.getElementById('factura-numero').innerText = data.factura_numero;
+    document.getElementById('factura-fecha').innerText = data.fecha;
+    document.getElementById('recibido-por').innerText = data.recibido_por;
+    document.getElementById('detalle-compra').innerHTML = data.productos.map(p => `<tr><td class="border px-4 py-2">${p.nombre}</td><td class="border px-4 py-2">${p.cantidad}</td><td class="border px-4 py-2">Bs. ${p.costo.toFixed(2)}</td><td class="border px-4 py-2">Bs. ${(p.cantidad * p.costo).toFixed(2)}</td></tr>`).join('');
+    document.getElementById('total-compra').innerText = `Bs. ${data.total.toFixed(2)}`;
+  }
+</script>
+</body>
+</html>

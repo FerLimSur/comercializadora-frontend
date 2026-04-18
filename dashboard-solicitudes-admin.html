@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de Solicitudes - Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <div class="w-64 bg-gray-900 text-white flex flex-col">
+    <div class="p-5 border-b border-gray-800">
+      <div class="flex items-center space-x-3">
+        <i class="fas fa-clipboard-list text-2xl text-purple-400"></i>
+        <h2 class="text-xl font-bold">Solicitudes</h2>
+      </div>
+      <p class="text-xs text-gray-400 mt-2">Panel de Aprobación</p>
+    </div>
+    <nav class="flex-1 py-4">
+      <a href="#" onclick="showSection('pendientes')" class="flex items-center px-5 py-3 hover:bg-gray-800 transition">
+        <i class="fas fa-clock w-5 mr-3"></i> Pendientes
+        <span id="pendientes-count" class="ml-auto bg-red-500 text-xs px-2 py-1 rounded-full"></span>
+      </a>
+      <a href="#" onclick="showSection('todas')" class="flex items-center px-5 py-3 hover:bg-gray-800 transition">
+        <i class="fas fa-list w-5 mr-3"></i> Todas las Solicitudes
+      </a>
+      <a href="#" onclick="showSection('estadisticas')" class="flex items-center px-5 py-3 hover:bg-gray-800 transition">
+        <i class="fas fa-chart-bar w-5 mr-3"></i> Estadísticas
+      </a>
+      <a href="dashboard-admin.html" class="flex items-center px-5 py-3 hover:bg-gray-800 transition mt-4 border-t border-gray-800 pt-4">
+        <i class="fas fa-arrow-left w-5 mr-3"></i> Volver al Panel
+      </a>
+    </nav>
+    <div class="p-4 border-t border-gray-800">
+      <div class="flex items-center justify-between">
+        <div><p class="text-sm" id="admin-name">Administrador</p><p class="text-xs text-gray-400">admin@comercializadora.com</p></div>
+        <a href="index.html" class="text-gray-400 hover:text-white"><i class="fas fa-sign-out-alt"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto">
+    <div class="bg-white shadow-sm p-4 sticky top-0 z-10">
+      <h1 class="text-2xl font-bold text-gray-800" id="section-title">Solicitudes Pendientes</h1>
+    </div>
+
+    <div class="p-6" id="main-content">
+      <!-- Pendientes Section -->
+      <div id="pendientes-section">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-4">Solicitudes de Reposición Pendientes</h3>
+          <div id="solicitudes-pendientes" class="space-y-4"></div>
+        </div>
+      </div>
+
+      <!-- Todas Section -->
+      <div id="todas-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-4">Historial Completo de Solicitudes</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <select id="filtro-estado-todas" class="border rounded-lg p-2" onchange="filtrarTodasSolicitudes()">
+              <option value="todos">Todos los estados</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="aprobada">Aprobada</option>
+              <option value="rechazada">Rechazada</option>
+              <option value="en_compra">En compra</option>
+              <option value="recibida">Recibida</option>
+            </select>
+            <input type="date" id="filtro-fecha-todas" class="border rounded-lg p-2" onchange="filtrarTodasSolicitudes()">
+            <button onclick="exportarSolicitudesExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg">📊 Exportar Excel</button>
+            <button onclick="exportarSolicitudesPDF()" class="bg-red-600 text-white px-4 py-2 rounded-lg">📄 Exportar PDF</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50"><tr><th class="px-4 py-2">ID</th><th class="px-4 py-2">Producto</th><th class="px-4 py-2">Cantidad</th><th class="px-4 py-2">Solicitante</th><th class="px-4 py-2">Urgencia</th><th class="px-4 py-2">Estado</th><th class="px-4 py-2">Fecha</th><th class="px-4 py-2">Acciones</th></tr></thead>
+              <tbody id="tabla-todas-solicitudes"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estadísticas Section -->
+      <div id="estadisticas-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-6">Estadísticas de Solicitudes</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-blue-50 rounded-lg p-4 text-center"><p class="text-2xl font-bold text-blue-600" id="total-solicitudes">0</p><p>Total Solicitudes</p></div>
+            <div class="bg-yellow-50 rounded-lg p-4 text-center"><p class="text-2xl font-bold text-yellow-600" id="pendientes-total">0</p><p>Pendientes</p></div>
+            <div class="bg-green-50 rounded-lg p-4 text-center"><p class="text-2xl font-bold text-green-600" id="aprobadas-total">0</p><p>Aprobadas</p></div>
+            <div class="bg-purple-50 rounded-lg p-4 text-center"><p class="text-2xl font-bold text-purple-600" id="recibidas-total">0</p><p>Recibidas</p></div>
+          </div>
+          <canvas id="solicitudesChart" height="100"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let solicitudes = JSON.parse(localStorage.getItem('solicitudes_reposicion')) || [];
+  let productos = JSON.parse(localStorage.getItem('productos')) || [];
+
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  if (!currentUser || currentUser.role !== 'admin') window.location.href = 'login.html';
+  document.getElementById('admin-name').innerText = currentUser.name;
+
+  function cargarSolicitudesPendientes() {
+    const pendientes = solicitudes.filter(s => s.estado === 'pendiente');
+    document.getElementById('pendientes-count').innerText = pendientes.length;
+    
+    const container = document.getElementById('solicitudes-pendientes');
+    if (pendientes.length === 0) {
+      container.innerHTML = '<div class="text-center py-8 text-gray-500">No hay solicitudes pendientes</div>';
+      return;
+    }
+    
+    const urgenciaColor = { baja: '🟢', media: '🟡', alta: '🔴', critica: '⚫' };
+    container.innerHTML = pendientes.map(s => {
+      const producto = productos.find(p => p.id == s.producto_id);
+      return `
+        <div class="border rounded-lg p-4 ${s.urgencia === 'critica' ? 'bg-red-50 border-red-300' : ''}">
+          <div class="flex justify-between items-start">
+            <div class="flex-1">
+              <div class="flex items-center mb-2">
+                <h4 class="font-bold text-lg">${s.producto_nombre}</h4>
+                <span class="ml-3 text-sm px-2 py-1 rounded ${s.urgencia === 'critica' ? 'bg-red-200 text-red-800' : 'bg-gray-200'}">${urgenciaColor[s.urgencia]} ${s.urgencia.toUpperCase()}</span>
+              </div>
+              <p class="text-gray-600">Cantidad solicitada: <strong>${s.cantidad}</strong> unidades</p>
+              <p class="text-gray-600">Stock actual: <strong class="${producto && producto.stock < 10 ? 'text-red-600' : ''}">${producto ? producto.stock : 0}</strong> unidades</p>
+              <p class="text-gray-600">Motivo: ${s.motivo}</p>
+              ${s.observaciones ? `<p class="text-gray-500 text-sm mt-1">📝 ${s.observaciones}</p>` : ''}
+              <p class="text-gray-400 text-sm mt-2">Solicitado por: ${s.solicitante} | ${new Date(s.fecha_solicitud).toLocaleString()}</p>
+            </div>
+            <div class="flex flex-col space-y-2 ml-4">
+              <button onclick="aprobarSolicitud(${s.id})" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                <i class="fas fa-check mr-2"></i>Aprobar
+              </button>
+              <button onclick="abrirModalRechazo(${s.id})" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                <i class="fas fa-times mr-2"></i>Rechazar
+              </button>
+              <button onclick="verDetalleSolicitud(${s.id})" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                <i class="fas fa-eye mr-2"></i>Ver
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function aprobarSolicitud(id) {
+    const solicitud = solicitudes.find(s => s.id === id);
+    if (!solicitud) return;
+    
+    const nuevaCantidad = parseInt(prompt(`Ingrese la cantidad a comprar (Solicitado: ${solicitud.cantidad})`, solicitud.cantidad));
+    if (!nuevaCantidad || nuevaCantidad <= 0) return;
+    
+    solicitud.estado = 'aprobada';
+    solicitud.cantidad_aprobada = nuevaCantidad;
+    solicitud.fecha_respuesta = new Date().toISOString();
+    solicitud.responsable = currentUser.name;
+    
+    localStorage.setItem('solicitudes_reposicion', JSON.stringify(solicitudes));
+    
+    // Registrar en el sistema de compras pendientes
+    let comprasPendientes = JSON.parse(localStorage.getItem('compras_pendientes')) || [];
+    comprasPendientes.push({
+      id: comprasPendientes.length + 1,
+      solicitud_id: solicitud.id,
+      producto_id: solicitud.producto_id,
+      producto_nombre: solicitud.producto_nombre,
+      cantidad: nuevaCantidad,
+      estado: 'pendiente_compra',
+      fecha_solicitud: new Date().toISOString(),
+      solicitante: currentUser.name
+    });
+    localStorage.setItem('compras_pendientes', JSON.stringify(comprasPendientes));
+    
+    alert('Solicitud aprobada. Se ha registrado una orden de compra pendiente.');
+    cargarSolicitudesPendientes();
+    cargarTodasSolicitudes();
+    actualizarEstadisticas();
+  }
+
+  function abrirModalRechazo(id) {
+    const motivo = prompt('Ingrese el motivo del rechazo:');
+    if (motivo) {
+      const solicitud = solicitudes.find(s => s.id === id);
+      solicitud.estado = 'rechazada';
+      solicitud.motivo_rechazo = motivo;
+      solicitud.fecha_respuesta = new Date().toISOString();
+      solicitud.responsable = currentUser.name;
+      localStorage.setItem('solicitudes_reposicion', JSON.stringify(solicitudes));
+      alert('Solicitud rechazada');
+      cargarSolicitudesPendientes();
+      cargarTodasSolicitudes();
+      actualizarEstadisticas();
+    }
+  }
+
+  function verDetalleSolicitud(id) {
+    const solicitud = solicitudes.find(s => s.id === id);
+    alert(JSON.stringify(solicitud, null, 2));
+  }
+
+  function cargarTodasSolicitudes() {
+    const filtroEstado = document.getElementById('filtro-estado-todas')?.value || 'todos';
+    const filtroFecha = document.getElementById('filtro-fecha-todas')?.value || '';
+    
+    let filtradas = [...solicitudes];
+    if (filtroEstado !== 'todos') filtradas = filtradas.filter(s => s.estado === filtroEstado);
+    if (filtroFecha) filtradas = filtradas.filter(s => s.fecha_solicitud.split('T')[0] === filtroFecha);
+    
+    const tbody = document.getElementById('tabla-todas-solicitudes');
+    const estadoColor = { pendiente: 'bg-yellow-100 text-yellow-600', aprobada: 'bg-green-100 text-green-600', rechazada: 'bg-red-100 text-red-600', en_compra: 'bg-blue-100 text-blue-600', recibida: 'bg-purple-100 text-purple-600' };
+    const urgenciaIcono = { baja: '🟢', media: '🟡', alta: '🔴', critica: '⚫' };
+    
+    tbody.innerHTML = filtradas.map(s => `
+      <tr class="border-b">
+        <td class="px-4 py-2">${s.id}</td>
+        <td class="px-4 py-2">${s.producto_nombre}</td>
+        <td class="px-4 py-2">${s.cantidad}</td>
+        <td class="px-4 py-2">${s.solicitante}</td>
+        <td class="px-4 py-2">${urgenciaIcono[s.urgencia]} ${s.urgencia}</td>
+        <td class="px-4 py-2"><span class="px-2 py-1 rounded text-xs ${estadoColor[s.estado]}">${s.estado}</span></td>
+        <td class="px-4 py-2">${new Date(s.fecha_solicitud).toLocaleDateString()}</td>
+        <td class="px-4 py-2">
+          <button onclick="verDetalleSolicitud(${s.id})" class="text-blue-600 mr-2"><i class="fas fa-eye"></i></button>
+          ${s.estado === 'pendiente' ? `<button onclick="aprobarSolicitud(${s.id})" class="text-green-600 mr-2"><i class="fas fa-check"></i></button><button onclick="abrirModalRechazo(${s.id})" class="text-red-600"><i class="fas fa-times"></i></button>` : ''}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filtrarTodasSolicitudes() { cargarTodasSolicitudes(); }
+
+  function actualizarEstadisticas() {
+    document.getElementById('total-solicitudes').innerText = solicitudes.length;
+    document.getElementById('pendientes-total').innerText = solicitudes.filter(s => s.estado === 'pendiente').length;
+    document.getElementById('aprobadas-total').innerText = solicitudes.filter(s => s.estado === 'aprobada').length;
+    document.getElementById('recibidas-total').innerText = solicitudes.filter(s => s.estado === 'recibida').length;
+    
+    const ctx = document.getElementById('solicitudesChart').getContext('2d');
+    const estados = ['pendiente', 'aprobada', 'rechazada', 'en_compra', 'recibida'];
+    const conteos = estados.map(e => solicitudes.filter(s => s.estado === e).length);
+    new Chart(ctx, { type: 'bar', data: { labels: estados, datasets: [{ label: 'Cantidad', data: conteos, backgroundColor: '#f97316' }] }, options: { responsive: true } });
+  }
+
+  function exportarSolicitudesExcel() {
+    let csv = "ID,Producto,Cantidad,Solicitante,Urgencia,Estado,Motivo,Fecha Solicitud,Fecha Respuesta\n";
+    solicitudes.forEach(s => { csv += `${s.id},${s.producto_nombre},${s.cantidad},${s.solicitante},${s.urgencia},${s.estado},${s.motivo},${s.fecha_solicitud},${s.fecha_respuesta || ''}\n`; });
+    const blob = new Blob([csv], { type: 'text/csv' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'solicitudes_reposicion.csv'; a.click(); URL.revokeObjectURL(url);
+  }
+
+  function exportarSolicitudesPDF() { window.print(); }
+
+  function showSection(section) {
+    document.getElementById('pendientes-section').classList.add('hidden');
+    document.getElementById('todas-section').classList.add('hidden');
+    document.getElementById('estadisticas-section').classList.add('hidden');
+    document.getElementById(`${section}-section`).classList.remove('hidden');
+    const titles = { pendientes: 'Solicitudes Pendientes', todas: 'Todas las Solicitudes', estadisticas: 'Estadísticas' };
+    document.getElementById('section-title').innerText = titles[section];
+    if (section === 'todas') cargarTodasSolicitudes();
+    if (section === 'estadisticas') actualizarEstadisticas();
+  }
+
+  cargarSolicitudesPendientes();
+  cargarTodasSolicitudes();
+  actualizarEstadisticas();
+</script>
+</body>
+</html>

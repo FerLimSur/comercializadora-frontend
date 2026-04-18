@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comercializadora XYZ | Productos de Consumo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .fade-in-up {
+      animation: fadeInUp 0.6s ease-out;
+    }
+    .product-image-card {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 12px 12px 0 0;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+<!-- Navbar Moderno -->
+<nav class="bg-white shadow-lg sticky top-0 z-50">
+  <div class="container mx-auto px-6 py-4">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <i class="fas fa-store text-3xl text-purple-600"></i>
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Comercializadora XYZ</h1>
+      </div>
+      <div class="hidden md:flex space-x-8">
+        <a href="#productos" class="text-gray-700 hover:text-purple-600 transition">Productos</a>
+        <a href="#promociones" class="text-gray-700 hover:text-purple-600 transition">Promociones</a>
+        <a href="#contacto" class="text-gray-700 hover:text-purple-600 transition">Contacto</a>
+      </div>
+      <div class="flex space-x-3">
+        <a href="login.html" class="px-5 py-2 text-purple-600 border-2 border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition">
+          <i class="fas fa-sign-in-alt mr-2"></i>Ingresar
+        </a>
+        <a href="register.html" class="px-5 py-2 btn-primary text-white rounded-lg">
+          <i class="fas fa-user-plus mr-2"></i>Registrarse
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section Mejorado -->
+<section class="gradient-bg text-white py-20">
+  <div class="container mx-auto px-6 text-center fade-in-up">
+    <h2 class="text-5xl font-bold mb-4">Bienvenido a Comercializadora XYZ</h2>
+    <p class="text-xl mb-8">Los mejores productos de consumo al mejor precio, con la calidad que mereces</p>
+    <div class="flex justify-center space-x-4">
+      <a href="#productos" class="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:shadow-xl transition">
+        Ver Productos
+      </a>
+      <a href="register.html" class="border-2 border-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-purple-600 transition">
+        Registrarse Ahora
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-12 bg-white">
+  <div class="container mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="text-center">
+        <i class="fas fa-truck text-4xl text-purple-600 mb-3"></i>
+        <h3 class="text-2xl font-bold">+10,000</h3>
+        <p class="text-gray-600">Entregas realizadas</p>
+      </div>
+      <div class="text-center">
+        <i class="fas fa-smile text-4xl text-purple-600 mb-3"></i>
+        <h3 class="text-2xl font-bold">+5,000</h3>
+        <p class="text-gray-600">Clientes satisfechos</p>
+      </div>
+      <div class="text-center">
+        <i class="fas fa-boxes text-4xl text-purple-600 mb-3"></i>
+        <h3 class="text-2xl font-bold">+500</h3>
+        <p class="text-gray-600">Productos disponibles</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Productos Section -->
+<section id="productos" class="py-16 bg-gray-50">
+  <div class="container mx-auto px-6">
+    <h2 class="text-3xl font-bold text-center mb-12">Nuestros Productos Destacados</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6" id="productos-container">
+      <!-- Los productos se cargarán dinámicamente desde localStorage con imágenes -->
+    </div>
+  </div>
+</section>
+
+<!-- Promociones Section - Dinámica con localStorage -->
+<section id="promociones" class="py-16 bg-gradient-to-r from-purple-50 to-pink-50">
+  <div class="container mx-auto px-6">
+    <h2 class="text-3xl font-bold text-center mb-12">Promociones Especiales</h2>
+    <div id="promociones-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Promociones se cargarán dinámicamente desde localStorage -->
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-white py-12" id="contacto">
+  <div class="container mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div>
+        <h3 class="text-xl font-bold mb-4">Comercializadora XYZ</h3>
+        <p class="text-gray-400">Comprometidos con la calidad y el mejor servicio desde 2010.</p>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4">Enlaces Rápidos</h4>
+        <ul class="space-y-2 text-gray-400">
+          <li><a href="#" class="hover:text-white">Inicio</a></li>
+          <li><a href="#productos" class="hover:text-white">Productos</a></li>
+          <li><a href="#promociones" class="hover:text-white">Promociones</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4">Contacto</h4>
+        <ul class="space-y-2 text-gray-400">
+          <li><i class="fas fa-phone mr-2"></i> +591 12345678</li>
+          <li><i class="fas fa-envelope mr-2"></i> info@comercializadoraxyz.com</li>
+          <li><i class="fas fa-map-marker-alt mr-2"></i> La Paz, Bolivia</li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4">Síguenos</h4>
+        <div class="flex space-x-4">
+          <a href="#" class="text-2xl hover:text-purple-400"><i class="fab fa-facebook"></i></a>
+          <a href="#" class="text-2xl hover:text-purple-400"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="text-2xl hover:text-purple-400"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+      <p>&copy; 2024 Comercializadora XYZ. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ------------------------------------------------------------------
+  // 1. DATOS DE PRODUCTOS (con localStorage o por defecto) - CORREGIDO
+  // ------------------------------------------------------------------
+  let productos = JSON.parse(localStorage.getItem('productos')) || [
+    { id: 1, nombre: "Coca Cola 2L", precio: 12, stock: 50, categoria: "Bebidas", imagen: "https://images.unsplash.com/photo-1554866585-cd94860890b7?w=200&h=200&fit=crop", codigo: "P001", costo: 8, stockMin: 10, stockMax: 200 },
+    { id: 2, nombre: "Arroz 5kg", precio: 35, stock: 30, categoria: "Granos", imagen: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200&h=200&fit=crop", codigo: "P002", costo: 25, stockMin: 15, stockMax: 100 },
+    { id: 3, nombre: "Aceite 1L", precio: 18, stock: 40, categoria: "Abarrotes", imagen: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=200&h=200&fit=crop", codigo: "P003", costo: 12, stockMin: 8, stockMax: 80 },
+    { id: 4, nombre: "Azúcar 1kg", precio: 8, stock: 60, categoria: "Abarrotes", imagen: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200&h=200&fit=crop", codigo: "P004", costo: 5, stockMin: 10, stockMax: 150 },
+    { id: 5, nombre: "Leche 1L", precio: 7, stock: 25, categoria: "Lácteos", imagen: "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=200&h=200&fit=crop", codigo: "P005", costo: 4.5, stockMin: 8, stockMax: 80 }
+  ];
+
+  function mostrarProductos() {
+    const container = document.getElementById('productos-container');
+    if (container) {
+      container.innerHTML = productos.map(producto => `
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+          <img src="${producto.imagen || 'https://via.placeholder.com/200'}" class="product-image-card" alt="${producto.nombre}" onerror="this.src='https://via.placeholder.com/200'">
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xl font-bold">${escapeHtml(producto.nombre)}</h3>
+              <span class="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">${escapeHtml(producto.categoria)}</span>
+            </div>
+            <p class="text-2xl font-bold text-purple-600 mb-2">Bs. ${producto.precio}</p>
+            <p class="text-sm text-gray-500 mb-4">Stock: ${producto.stock} unidades</p>
+            <button onclick="verProducto(${producto.id})" class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+              <i class="fas fa-shopping-cart mr-2"></i>Comprar
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  function verProducto(id) {
+    const producto = productos.find(p => p.id === id);
+    if (producto) {
+      alert(`🛒 ${producto.nombre}\n💰 Precio: Bs. ${producto.precio}\n📦 Stock disponible: ${producto.stock} unidades\n\nPara comprar, por favor inicia sesión como cliente o vendedor.`);
+    }
+  }
+
+  // Función auxiliar para evitar XSS básico
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+      return c;
+    });
+  }
+
+  // ------------------------------------------------------------------
+  // 2. CARGAR PROMOCIONES DINÁMICAMENTE DESDE localStorage
+  //    con validación de fechas y filtro activas.
+  //    Incluye colores y tipos de oferta (porcentaje, fijo, 2x1, etc.)
+  // ------------------------------------------------------------------
+  function cargarPromocionesIndex() {
+    // Obtener promociones guardadas (si no existen, array vacío)
+    let promociones = JSON.parse(localStorage.getItem('promociones')) || [];
+    
+    // Filtramos solo las activas y que la fecha_fin no sea anterior a hoy
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0); // comparar solo fechas sin hora
+    
+    const promocionesActivas = promociones.filter(p => {
+      if (!p.activa) return false;
+      if (!p.fecha_fin) return false;
+      const fechaFin = new Date(p.fecha_fin);
+      fechaFin.setHours(0, 0, 0, 0);
+      return fechaFin >= hoy;
+    });
+    
+    // Mapa de colores para los gradientes (basado en color elegido en admin)
+    const colores = {
+      purple: 'from-purple-500 to-pink-500',
+      pink: 'from-pink-500 to-rose-500',
+      blue: 'from-blue-500 to-cyan-500',
+      green: 'from-green-500 to-emerald-500',
+      orange: 'from-orange-500 to-red-500',
+      red: 'from-red-500 to-rose-600'
+    };
+    
+    const container = document.getElementById('promociones-container');
+    if (!container) return;
+    
+    // Si no hay promociones activas mostramos mensaje amigable
+    if (promocionesActivas.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-full text-center py-8">
+          <p class="text-gray-500">No hay promociones activas en este momento</p>
+          <a href="register.html" class="text-purple-600 font-semibold mt-2 inline-block">Regístrate para recibir notificaciones →</a>
+        </div>
+      `;
+    } else {
+      container.innerHTML = promocionesActivas.map(promo => {
+        // Determinar texto del descuento/oferta según tipo
+        let badgeText = '';
+        let badgeIcon = '';
+        if (promo.tipo === 'porcentaje') {
+          badgeText = `${promo.valor}% OFF`;
+          badgeIcon = 'fa-percent';
+        } else if (promo.tipo === 'fijo') {
+          badgeText = `Bs. ${promo.valor} OFF`;
+          badgeIcon = 'fa-tag';
+        } else if (promo.tipo === '2x1') {
+          badgeText = '2x1';
+          badgeIcon = 'fa-cart-shopping';
+        } else {
+          badgeText = promo.tipo?.toUpperCase() || 'OFERTA';
+          badgeIcon = 'fa-gift';
+        }
+        
+        // Icono principal que puede venir del registro o por defecto
+        let mainIcon = promo.icono && promo.icono.trim() !== '' ? promo.icono : 'fas fa-gift';
+        // Aseguramos que las clases de FontAwesome se vean bien
+        if (!mainIcon.includes('fa-')) mainIcon = 'fas fa-gift';
+        
+        const colorKey = promo.color && colores[promo.color] ? promo.color : 'purple';
+        const gradientClass = colores[colorKey] || colores.purple;
+        
+        // Formatear fecha fin
+        let fechaFinTexto = '';
+        if (promo.fecha_fin) {
+          try {
+            const fechaObj = new Date(promo.fecha_fin);
+            fechaFinTexto = fechaObj.toLocaleDateString('es-ES');
+          } catch(e) { fechaFinTexto = promo.fecha_fin; }
+        }
+        
+        return `
+          <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover flex flex-col">
+            <div class="bg-gradient-to-r ${gradientClass} p-6 text-white">
+              <div class="flex items-center justify-between">
+                <i class="${mainIcon} text-4xl"></i>
+                <span class="bg-white bg-opacity-30 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
+                  <i class="fas ${badgeIcon} text-xs"></i> ${badgeText}
+                </span>
+              </div>
+              <h3 class="text-2xl font-bold mt-4">${escapeHtml(promo.titulo || 'Oferta especial')}</h3>
+            </div>
+            <div class="p-6 flex-1 flex flex-col">
+              <p class="text-gray-600 mb-4">${escapeHtml(promo.descripcion || 'Aprovecha esta increíble oferta')}</p>
+              <div class="text-sm text-gray-500 mb-4 space-y-1">
+                ${promo.compra_minima && promo.compra_minima > 0 ? `<p><i class="fas fa-shopping-cart mr-2 w-4"></i>Compra mínima: Bs. ${promo.compra_minima}</p>` : ''}
+                ${promo.cantidad_minima && promo.cantidad_minima > 1 ? `<p><i class="fas fa-boxes mr-2 w-4"></i>Cantidad mínima: ${promo.cantidad_minima} unidades</p>` : ''}
+                ${promo.fecha_fin ? `<p><i class="fas fa-calendar-alt mr-2 w-4"></i>Válido hasta: ${fechaFinTexto}</p>` : ''}
+                ${promo.stock_limitado ? `<p><i class="fas fa-exclamation-triangle mr-2 w-4"></i>Stock limitado</p>` : ''}
+              </div>
+              <a href="#productos" class="inline-block w-full text-center bg-gradient-to-r ${gradientClass} text-white px-4 py-2 rounded-lg hover:opacity-90 transition mt-auto shadow-md">
+                Ver productos <i class="fas fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+  
+  // Inicializar funciones al cargar la página
+  mostrarProductos();
+  cargarPromocionesIndex();
+  
+  // Opcional: escuchar cambios en localStorage para actualizar promociones en tiempo real (útil si desde otra pestaña se agregan)
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'promociones') {
+      cargarPromocionesIndex();
+    }
+    if (event.key === 'productos') {
+      // Recargar productos si cambian en otra pestaña
+      productos = JSON.parse(localStorage.getItem('productos')) || productos;
+      mostrarProductos();
+    }
+  });
+  
+  // Exponer función verProducto globalmente
+  window.verProducto = verProducto;
+  
+  // También proporcionar demo: Si no existen promociones en localStorage, podemos agregar algunas de ejemplo
+  // para que la página muestre contenido atractivo de inmediato. Esto mejora la experiencia.
+  (function inicializarPromocionesEjemplo() {
+    const promosGuardadas = localStorage.getItem('promociones');
+    if (!promosGuardadas) {
+      // Crear promociones de ejemplo para que el usuario vea el sistema dinámico
+      const ejemploPromociones = [
+        {
+          id: 1,
+          titulo: "Descuento por Antigüedad",
+          descripcion: "Clientes con más de 1 año: 10% descuento. Más de 3 años: 15%. Más de 5 años: 20%.",
+          tipo: "porcentaje",
+          valor: 10,
+          compra_minima: 50,
+          cantidad_minima: 1,
+          fecha_inicio: "2024-01-01",
+          fecha_fin: new Date(new Date().getFullYear(), new Date().getMonth() + 3, 1).toISOString().split('T')[0], // +3 meses
+          activa: true,
+          color: "purple",
+          icono: "fas fa-award",
+          stock_limitado: false
+        },
+        {
+          id: 2,
+          titulo: "2x1 en Seleccionados",
+          descripcion: "Lleva 2 productos seleccionados y paga solo 1. Aplican términos y condiciones.",
+          tipo: "2x1",
+          valor: 100,
+          compra_minima: 0,
+          cantidad_minima: 2,
+          fecha_inicio: "2024-01-01",
+          fecha_fin: new Date(new Date().getFullYear(), new Date().getMonth() + 2, 15).toISOString().split('T')[0],
+          activa: true,
+          color: "pink",
+          icono: "fas fa-tags",
+          stock_limitado: true
+        },
+        {
+          id: 3,
+          titulo: "Oferta Especial Aceite 1L",
+          descripcion: "Descuento fijo de Bs. 5 en la compra de Aceite 1L. Aprovecha ahora.",
+          tipo: "fijo",
+          valor: 5,
+          compra_minima: 15,
+          cantidad_minima: 1,
+          fecha_inicio: "2024-01-10",
+          fecha_fin: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().split('T')[0],
+          activa: true,
+          color: "green",
+          icono: "fas fa-oil-can",
+          stock_limitado: false
+        }
+      ];
+      localStorage.setItem('promociones', JSON.stringify(ejemploPromociones));
+      // Si no existían, recargamos la función para mostrar los ejemplos
+      cargarPromocionesIndex();
+    }
+  })();
+  
+  // Pequeña mejora: Actualizar también si se modifica manualmente después del primer render
+  // Forzamos una verificación extra por si las promociones de ejemplo recién se guardan después del load
+  setTimeout(() => {
+    cargarPromocionesIndex();
+  }, 50);
+</script>
+</body>
+</html>

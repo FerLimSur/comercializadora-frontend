@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Gerencial - Comercializadora XYZ</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <div class="w-64 bg-indigo-900 text-white flex flex-col">
+    <div class="p-5 border-b border-indigo-800">
+      <div class="flex items-center space-x-3">
+        <i class="fas fa-chart-line text-2xl"></i>
+        <h2 class="text-xl font-bold">Gerencia</h2>
+      </div>
+      <p class="text-xs text-indigo-300 mt-2">Métricas y KPIs</p>
+    </div>
+    <nav class="flex-1 py-4">
+      <a href="#" onclick="showSection('dashboard')" class="flex items-center px-5 py-3 hover:bg-indigo-800 transition">
+        <i class="fas fa-tachometer-alt w-5 mr-3"></i> Dashboard
+      </a>
+      <a href="#" onclick="showSection('analiticas')" class="flex items-center px-5 py-3 hover:bg-indigo-800 transition">
+        <i class="fas fa-chart-pie w-5 mr-3"></i> Analíticas
+      </a>
+      <a href="#" onclick="showSection('reportes')" class="flex items-center px-5 py-3 hover:bg-indigo-800 transition">
+        <i class="fas fa-file-alt w-5 mr-3"></i> Reportes Avanzados
+      </a>
+      <a href="#" onclick="showSection('productividad')" class="flex items-center px-5 py-3 hover:bg-indigo-800 transition">
+        <i class="fas fa-trophy w-5 mr-3"></i> Productividad
+      </a>
+      <a href="dashboard-admin.html" class="flex items-center px-5 py-3 hover:bg-indigo-800 transition mt-4 border-t border-indigo-800 pt-4">
+        <i class="fas fa-arrow-left w-5 mr-3"></i> Volver
+      </a>
+    </nav>
+    <div class="p-4 border-t border-indigo-800">
+      <div class="flex items-center justify-between">
+        <div><p class="text-sm" id="gerente-name">Gerente</p><p class="text-xs text-indigo-300">gerente@comercializadora.com</p></div>
+        <a href="index.html" class="text-indigo-300 hover:text-white"><i class="fas fa-sign-out-alt"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto">
+    <div class="bg-white shadow-sm p-4 sticky top-0 z-10">
+      <h1 class="text-2xl font-bold text-gray-800" id="section-title">Dashboard Gerencial</h1>
+    </div>
+
+    <div class="p-6" id="main-content">
+      <!-- Dashboard Section -->
+      <div id="dashboard-section">
+        <!-- KPIs -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between">
+              <div><p class="text-gray-500 text-sm">Ventas Totales</p><p class="text-2xl font-bold text-gray-800" id="kpi-ventas-totales">Bs. 0</p></div>
+              <div class="bg-green-100 rounded-full p-3"><i class="fas fa-chart-line text-green-600 text-xl"></i></div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between">
+              <div><p class="text-gray-500 text-sm">Margen de Ganancia</p><p class="text-2xl font-bold text-gray-800" id="kpi-margen">0%</p></div>
+              <div class="bg-blue-100 rounded-full p-3"><i class="fas fa-percent text-blue-600 text-xl"></i></div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between">
+              <div><p class="text-gray-500 text-sm">Rotación de Stock</p><p class="text-2xl font-bold text-gray-800" id="kpi-rotacion">0x</p></div>
+              <div class="bg-yellow-100 rounded-full p-3"><i class="fas fa-sync-alt text-yellow-600 text-xl"></i></div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between">
+              <div><p class="text-gray-500 text-sm">Ticket Promedio</p><p class="text-2xl font-bold text-gray-800" id="kpi-ticket">Bs. 0</p></div>
+              <div class="bg-purple-100 rounded-full p-3"><i class="fas fa-receipt text-purple-600 text-xl"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div class="bg-white rounded-xl shadow-md p-6"><h3 class="text-lg font-bold mb-4">Ventas Mensuales</h3><canvas id="ventasMensualesChart" height="200"></canvas></div>
+          <div class="bg-white rounded-xl shadow-md p-6"><h3 class="text-lg font-bold mb-4">Top Vendedores</h3><canvas id="topVendedoresChart" height="200"></canvas></div>
+        </div>
+
+        <!-- Productos más rentables -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-lg font-bold mb-4">Productos Más Rentables</h3>
+          <div class="overflow-x-auto"><table class="w-full"><thead class="bg-gray-50"><tr><th class="px-4 py-2">Producto</th><th class="px-4 py-2">Unidades Vendidas</th><th class="px-4 py-2">Ingresos</th><th class="px-4 py-2">Costo</th><th class="px-4 py-2">Ganancia</th><th class="px-4 py-2">Margen</th></tr></thead><tbody id="tabla-productos-rentables"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- Analíticas Section -->
+      <div id="analiticas-section" class="hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-xl shadow-md p-6"><h3 class="text-lg font-bold mb-4">Ventas por Categoría</h3><canvas id="ventasCategoriaChart" height="250"></canvas></div>
+          <div class="bg-white rounded-xl shadow-md p-6"><h3 class="text-lg font-bold mb-4">Evolución de Stock</h3><canvas id="evolucionStockChart" height="250"></canvas></div>
+          <div class="bg-white rounded-xl shadow-md p-6 col-span-2">
+            <h3 class="text-lg font-bold mb-4">Predicción de Ventas (Próximos 6 meses)</h3>
+            <canvas id="prediccionChart" height="150"></canvas>
+            <div id="info-prediccion" class="text-sm text-gray-500 mt-2"></div>
+            <p class="text-xs text-gray-400 mt-1">*Predicción basada en regresión lineal sobre los últimos meses</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reportes Section mejorada -->
+      <div id="reportes-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-6">Generador de Reportes Avanzados</h3>
+          
+          <!-- Filtros comunes -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+            <div>
+              <label class="block text-sm font-medium mb-1">Fecha Inicio</label>
+              <input type="date" id="reporte-fecha-inicio" class="w-full border rounded-lg p-2">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Fecha Fin</label>
+              <input type="date" id="reporte-fecha-fin" class="w-full border rounded-lg p-2">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Vendedor</label>
+              <select id="reporte-filtro-vendedor" class="w-full border rounded-lg p-2">
+                <option value="todos">Todos los vendedores</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Producto</label>
+              <select id="reporte-filtro-producto" class="w-full border rounded-lg p-2">
+                <option value="todos">Todos los productos</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="border rounded-lg p-6 text-center">
+              <i class="fas fa-chart-line text-4xl text-blue-600 mb-3"></i>
+              <h4 class="font-bold mb-2">Reporte de Ventas</h4>
+              <p class="text-sm text-gray-600 mb-4">Ventas por período, vendedor, producto</p>
+              <div class="space-y-2">
+                <select id="reporte-tipo" class="w-full border rounded-lg p-2">
+                  <option value="ventas">Resumen Ventas</option>
+                  <option value="productos">Top Productos</option>
+                  <option value="vendedores">Rendimiento Vendedores</option>
+                </select>
+                <button onclick="generarReporteExcelConFiltros()" class="w-full bg-green-600 text-white py-2 rounded-lg">
+                  <i class="fas fa-file-excel mr-2"></i>Exportar Excel
+                </button>
+                <button onclick="generarReportePDFConFiltros()" class="w-full bg-red-600 text-white py-2 rounded-lg">
+                  <i class="fas fa-file-pdf mr-2"></i>Exportar PDF
+                </button>
+              </div>
+            </div>
+            <div class="border rounded-lg p-6 text-center">
+              <i class="fas fa-boxes text-4xl text-orange-600 mb-3"></i>
+              <h4 class="font-bold mb-2">Reporte de Inventario</h4>
+              <p class="text-sm text-gray-600 mb-4">Valor de inventario, rotación, stock crítico</p>
+              <button onclick="generarReporteInventarioConFiltros()" class="w-full bg-green-600 text-white py-2 rounded-lg mb-2">
+                <i class="fas fa-file-excel mr-2"></i>Exportar Inventario
+              </button>
+              <button onclick="generarReporteStockCritico()" class="w-full bg-red-600 text-white py-2 rounded-lg">
+                <i class="fas fa-exclamation-triangle mr-2"></i>Reporte Stock Crítico
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Productividad Section -->
+      <div id="productividad-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-6">Ranking de Vendedores</h3>
+          <div class="overflow-x-auto"><table class="w-full"><thead class="bg-gray-50"><tr><th class="px-4 py-2">#</th><th class="px-4 py-2">Vendedor</th><th class="px-4 py-2">Ventas Totales</th><th class="px-4 py-2">Comisión (5%)</th><th class="px-4 py-2">Meta (Bs. 5000)</th><th class="px-4 py-2">Cumplimiento</th></tr></thead><tbody id="tabla-ranking-vendedores"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Obtener datos
+  let productos = JSON.parse(localStorage.getItem('productos')) || [];
+  let ventas = JSON.parse(localStorage.getItem('ventas')) || [];
+  let usuarios = JSON.parse(localStorage.getItem('clientes')) || [];
+
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  if (!currentUser) window.location.href = 'login.html';
+  document.getElementById('gerente-name').innerText = currentUser.name || 'Gerente';
+
+  function calcularKPIs() {
+    // Ventas totales
+    const totalVentas = ventas.reduce((sum, v) => sum + v.total, 0);
+    document.getElementById('kpi-ventas-totales').innerText = `Bs. ${totalVentas.toLocaleString()}`;
+    
+    // Margen de ganancia
+    let gananciaTotal = 0;
+    ventas.forEach(v => {
+      const producto = productos.find(p => p.nombre === v.producto);
+      if (producto) gananciaTotal += (v.total - (producto.costo * v.cantidad));
+    });
+    const margen = totalVentas > 0 ? (gananciaTotal / totalVentas * 100).toFixed(1) : 0;
+    document.getElementById('kpi-margen').innerText = `${margen}%`;
+    
+    // Rotación de stock
+    const unidadesVendidas = ventas.reduce((sum, v) => sum + v.cantidad, 0);
+    const stockPromedio = productos.reduce((sum, p) => sum + p.stock, 0) / productos.length;
+    const rotacion = stockPromedio > 0 ? (unidadesVendidas / stockPromedio).toFixed(1) : 0;
+    document.getElementById('kpi-rotacion').innerText = `${rotacion}x`;
+    
+    // Ticket promedio
+    const ticketPromedio = ventas.length > 0 ? totalVentas / ventas.length : 0;
+    document.getElementById('kpi-ticket').innerText = `Bs. ${ticketPromedio.toFixed(2)}`;
+  }
+
+  // Función mejorada de predicción con regresión lineal
+  function calcularPrediccionRegresionLineal(datos) {
+    if (datos.length < 2) return Array(6).fill(datos.length > 0 ? datos[0].ventas : 0);
+    
+    const x = datos.map((_, idx) => idx);
+    const y = datos.map(d => d.ventas);
+    
+    const n = x.length;
+    const sumX = x.reduce((a, b) => a + b, 0);
+    const sumY = y.reduce((a, b) => a + b, 0);
+    const sumXY = x.reduce((a, b, i) => a + b * y[i], 0);
+    const sumX2 = x.reduce((a, b) => a + b * b, 0);
+    
+    const m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const b = (sumY - m * sumX) / n;
+    
+    const predicciones = [];
+    for (let i = 0; i < 6; i++) {
+      const prediccion = m * (n + i) + b;
+      predicciones.push(Math.max(0, prediccion));
+    }
+    return predicciones;
+  }
+
+  function cargarPrediccionMejorada() {
+    const ventasPorMes = {};
+    ventas.forEach(v => {
+      let m = v.fecha.substring(0, 7);
+      ventasPorMes[m] = (ventasPorMes[m] || 0) + v.total;
+    });
+    
+    const mesesOrdenados = Object.keys(ventasPorMes).sort();
+    const datosHistoricos = mesesOrdenados.map(mes => ({
+      mes: mes,
+      ventas: ventasPorMes[mes]
+    }));
+    
+    const predicciones = calcularPrediccionRegresionLineal(datosHistoricos);
+    
+    const ultimoMes = mesesOrdenados[mesesOrdenados.length - 1];
+    let [year, month] = ultimoMes ? ultimoMes.split('-').map(Number) : [new Date().getFullYear(), new Date().getMonth() + 1];
+    const etiquetasPrediccion = [];
+    for (let i = 1; i <= 6; i++) {
+      month++;
+      if (month > 12) {
+        month = 1;
+        year++;
+      }
+      etiquetasPrediccion.push(`${year}-${month.toString().padStart(2, '0')}`);
+    }
+    
+    const ctx = document.getElementById('prediccionChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [...mesesOrdenados, ...etiquetasPrediccion],
+        datasets: [
+          {
+            label: 'Ventas Históricas',
+            data: [...datosHistoricos.map(d => d.ventas), ...Array(6).fill(null)],
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            tension: 0.4,
+            fill: false,
+            pointBackgroundColor: '#6366f1',
+            pointBorderColor: '#fff',
+            pointRadius: 4,
+            pointHoverRadius: 6
+          },
+          {
+            label: 'Predicción (Regresión Lineal)',
+            data: [...Array(datosHistoricos.length).fill(null), ...predicciones],
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            borderDash: [5, 5],
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#f59e0b',
+            pointBorderColor: '#fff',
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (context.parsed.y !== null) {
+                  label += `: Bs. ${context.parsed.y.toFixed(2)}`;
+                }
+                return label;
+              }
+            }
+          },
+          legend: {
+            position: 'top',
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Ventas (Bs.)'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Período'
+            }
+          }
+        }
+      }
+    });
+    
+    const ultimasVentas = datosHistoricos.slice(-3).reduce((sum, d) => sum + d.ventas, 0) / 3;
+    const tendencia = predicciones[0] - (datosHistoricos[datosHistoricos.length - 1]?.ventas || 0);
+    const infoPrediccion = document.getElementById('info-prediccion');
+    if (infoPrediccion) {
+      infoPrediccion.innerHTML = `
+        <div class="mt-2 text-sm grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div class="bg-gray-50 p-2 rounded">
+            <span class="font-semibold">📊 Confianza del modelo:</span><br>
+            ${datosHistoricos.length >= 3 ? '✅ Alta (basada en ' + datosHistoricos.length + ' meses de datos)' : '⚠️ Media (pocos datos históricos)'}
+          </div>
+          <div class="bg-gray-50 p-2 rounded">
+            <span class="font-semibold">📈 Tendencia proyectada:</span><br>
+            ${tendencia > 0 ? '📈 Positiva (+' + tendencia.toFixed(2) + ')' : tendencia < 0 ? '📉 Negativa (' + tendencia.toFixed(2) + ')' : '➡️ Estable'}
+          </div>
+          <div class="bg-gray-50 p-2 rounded">
+            <span class="font-semibold">💰 Promedio últimos 3 meses:</span><br>
+            Bs. ${ultimasVentas.toFixed(2)}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  function cargarGraficos() {
+    // Ventas mensuales
+    const ventasPorMes = {};
+    ventas.forEach(v => { let m = v.fecha.substring(0,7); ventasPorMes[m] = (ventasPorMes[m]||0)+v.total; });
+    new Chart(document.getElementById('ventasMensualesChart'), { type:'line', data:{ labels:Object.keys(ventasPorMes), datasets:[{ label:'Ventas (Bs)', data:Object.values(ventasPorMes), borderColor:'#6366f1', tension:0.4 }] } });
+    
+    // Top vendedores
+    const ventasPorVendedor = {};
+    ventas.forEach(v => { ventasPorVendedor[v.vendedor] = (ventasPorVendedor[v.vendedor]||0)+v.total; });
+    const topVendedores = Object.entries(ventasPorVendedor).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    new Chart(document.getElementById('topVendedoresChart'), { type:'bar', data:{ labels:topVendedores.map(v=>v[0]), datasets:[{ label:'Ventas (Bs)', data:topVendedores.map(v=>v[1]), backgroundColor:'#6366f1' }] } });
+    
+    // Ventas por categoría
+    const ventasPorCategoria = {};
+    ventas.forEach(v => { const prod = productos.find(p=>p.nombre===v.producto); if(prod){ ventasPorCategoria[prod.categoria] = (ventasPorCategoria[prod.categoria]||0)+v.total; } });
+    new Chart(document.getElementById('ventasCategoriaChart'), { type:'doughnut', data:{ labels:Object.keys(ventasPorCategoria), datasets:[{ data:Object.values(ventasPorCategoria), backgroundColor:['#6366f1','#8b5cf6','#a855f7','#d946ef','#f43f5e'] }] } });
+    
+    // Evolución de stock
+    const stockPorMes = {};
+    productos.forEach(p => { stockPorMes[p.nombre] = p.stock; });
+    new Chart(document.getElementById('evolucionStockChart'), { type:'bar', data:{ labels:Object.keys(stockPorMes).slice(0,10), datasets:[{ label:'Stock Actual', data:Object.values(stockPorMes).slice(0,10), backgroundColor:'#f59e0b' }] } });
+    
+    // Cargar predicción mejorada
+    cargarPrediccionMejorada();
+  }
+
+  function cargarProductosRentables() {
+    const rentabilidad = {};
+    ventas.forEach(v => {
+      const producto = productos.find(p => p.nombre === v.producto);
+      if(producto){
+        if(!rentabilidad[v.producto]) rentabilidad[v.producto] = { unidades:0, ingresos:0, costo:0 };
+        rentabilidad[v.producto].unidades += v.cantidad;
+        rentabilidad[v.producto].ingresos += v.total;
+        rentabilidad[v.producto].costo += producto.costo * v.cantidad;
+      }
+    });
+    const ranking = Object.entries(rentabilidad).map(([nombre, data]) => ({ nombre, ganancia: data.ingresos - data.costo, margen: (data.ingresos - data.costo)/data.ingresos*100, ...data })).sort((a,b)=>b.ganancia-a.ganancia).slice(0,10);
+    document.getElementById('tabla-productos-rentables').innerHTML = ranking.map(p => `<tr class="border-b"><td class="px-4 py-2">${p.nombre}</td><td class="px-4 py-2">${p.unidades}</td><td class="px-4 py-2">Bs. ${p.ingresos.toFixed(2)}</td><td class="px-4 py-2">Bs. ${p.costo.toFixed(2)}</td><td class="px-4 py-2 text-green-600">Bs. ${p.ganancia.toFixed(2)}</td><td class="px-4 py-2">${p.margen.toFixed(1)}%</td></tr>`).join('');
+  }
+
+  function cargarRankingVendedores() {
+    const ventasPorVendedor = {};
+    ventas.forEach(v => { ventasPorVendedor[v.vendedor] = (ventasPorVendedor[v.vendedor]||0)+v.total; });
+    const ranking = Object.entries(ventasPorVendedor).map(([nombre, total]) => ({ nombre, total, comision: total * 0.05, cumplimiento: (total/5000*100) })).sort((a,b)=>b.total-a.total);
+    document.getElementById('tabla-ranking-vendedores').innerHTML = ranking.map((v,idx) => `<tr class="border-b"><td class="px-4 py-2">${idx+1}</td><td class="px-4 py-2">${v.nombre}</td><td class="px-4 py-2">Bs. ${v.total.toLocaleString()}</td><td class="px-4 py-2">Bs. ${v.comision.toFixed(2)}</td><td class="px-4 py-2">${v.total >= 5000 ? '✅' : '❌'} Bs. 5000</td><td class="px-4 py-2"><div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-green-600 h-2 rounded-full" style="width: ${Math.min(v.cumplimiento,100)}%"></div></div> ${v.cumplimiento.toFixed(1)}%</td></tr>`).join('');
+  }
+
+  // ==================== NUEVAS FUNCIONES DE REPORTES CON FILTROS ====================
+  
+  // Cargar filtros dinámicos
+  function cargarFiltrosReportes() {
+    const vendedoresSet = new Set();
+    const productosSet = new Set();
+    
+    ventas.forEach(v => {
+      vendedoresSet.add(v.vendedor);
+      productosSet.add(v.producto);
+    });
+    
+    const selectVendedor = document.getElementById('reporte-filtro-vendedor');
+    if (selectVendedor) {
+      selectVendedor.innerHTML = '<option value="todos">Todos los vendedores</option>' + 
+        Array.from(vendedoresSet).map(v => `<option value="${v}">${v}</option>`).join('');
+    }
+    
+    const selectProducto = document.getElementById('reporte-filtro-producto');
+    if (selectProducto) {
+      selectProducto.innerHTML = '<option value="todos">Todos los productos</option>' + 
+        Array.from(productosSet).map(p => `<option value="${p}">${p}</option>`).join('');
+    }
+  }
+
+  // Filtrar ventas según criterios
+  function filtrarVentasParaReporte() {
+    const fechaInicio = document.getElementById('reporte-fecha-inicio').value;
+    const fechaFin = document.getElementById('reporte-fecha-fin').value;
+    const vendedorFiltro = document.getElementById('reporte-filtro-vendedor').value;
+    const productofiltro = document.getElementById('reporte-filtro-producto').value;
+    
+    let ventasFiltradas = [...ventas];
+    
+    if (fechaInicio) ventasFiltradas = ventasFiltradas.filter(v => v.fecha >= fechaInicio);
+    if (fechaFin) ventasFiltradas = ventasFiltradas.filter(v => v.fecha <= fechaFin);
+    if (vendedorFiltro !== 'todos') ventasFiltradas = ventasFiltradas.filter(v => v.vendedor === vendedorFiltro);
+    if (productofiltro !== 'todos') ventasFiltradas = ventasFiltradas.filter(v => v.producto === productofiltro);
+    
+    return ventasFiltradas;
+  }
+
+  function generarReporteExcelConFiltros() {
+    const tipo = document.getElementById('reporte-tipo').value;
+    const ventasFiltradas = filtrarVentasParaReporte();
+    
+    let data = [];
+    if(tipo === 'ventas') {
+      data = ventasFiltradas.map(v => ({ 
+        Fecha: v.fecha, 
+        Producto: v.producto, 
+        Cantidad: v.cantidad, 
+        Total: v.total, 
+        Vendedor: v.vendedor, 
+        Cliente: v.cliente || 'Sin registrar' 
+      }));
+    } else if(tipo === 'productos') {
+      const prodVend = {};
+      ventasFiltradas.forEach(v => { prodVend[v.producto] = (prodVend[v.producto]||0) + v.cantidad; });
+      data = Object.entries(prodVend).map(([prod, cant]) => ({ Producto: prod, UnidadesVendidas: cant }));
+    } else if(tipo === 'vendedores') {
+      const vendVentas = {};
+      ventasFiltradas.forEach(v => { vendVentas[v.vendedor] = (vendVentas[v.vendedor]||0) + v.total; });
+      data = Object.entries(vendVentas).map(([vend, total]) => ({ Vendedor: vend, TotalVentas: total, Comision: total*0.05 }));
+    }
+    
+    if (data.length === 0) {
+      alert('No hay datos que coincidan con los filtros seleccionados.');
+      return;
+    }
+    
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
+    XLSX.writeFile(wb, `reporte_${tipo}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    alert(`Reporte Excel generado con ${data.length} registros`);
+  }
+
+  function generarReportePDFConFiltros() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const ventasFiltradas = filtrarVentasParaReporte();
+    
+    if (ventasFiltradas.length === 0) {
+      alert('No hay datos que coincidan con los filtros seleccionados.');
+      return;
+    }
+    
+    doc.text('Reporte de Ventas - Comercializadora XYZ', 14, 15);
+    doc.text(`Generado: ${new Date().toLocaleString()}`, 14, 25);
+    doc.text(`Registros: ${ventasFiltradas.length}`, 14, 35);
+    
+    const tableData = ventasFiltradas.map(v => [v.fecha, v.producto, v.cantidad, `Bs. ${v.total}`, v.vendedor]);
+    doc.autoTable({
+      head: [['Fecha', 'Producto', 'Cantidad', 'Total', 'Vendedor']],
+      body: tableData,
+      startY: 45
+    });
+    
+    doc.save(`reporte_ventas_${new Date().toISOString().split('T')[0]}.pdf`);
+  }
+
+  function generarReporteInventarioConFiltros() {
+    const productosFiltrados = productos.filter(p => p.stock < (p.stock_minimo || 10) * 2);
+    const data = productosFiltrados.map(p => ({ 
+      Codigo: p.codigo, 
+      Producto: p.nombre, 
+      Stock: p.stock, 
+      Precio: p.precio, 
+      Costo: p.costo, 
+      ValorInventario: (p.stock * p.costo).toFixed(2),
+      Estado: p.stock <= (p.stock_minimo || 10) ? 'CRÍTICO' : p.stock >= (p.stock_maximo || 100) ? 'EXCESO' : 'Normal'
+    }));
+    
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
+    XLSX.writeFile(wb, `inventario_detallado_${new Date().toISOString().split('T')[0]}.xlsx`);
+    alert(`Reporte de inventario generado con ${data.length} productos en estado crítico o cercano al mínimo`);
+  }
+
+  function generarReporteStockCritico() {
+    const criticos = productos.filter(p => p.stock <= (p.stock_minimo || 10));
+    if (criticos.length === 0) {
+      alert('No hay productos con stock crítico.');
+      return;
+    }
+    const ws = XLSX.utils.json_to_sheet(criticos);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'StockCritico');
+    XLSX.writeFile(wb, `stock_critico_${new Date().toISOString().split('T')[0]}.xlsx`);
+    alert(`Reporte de stock crítico generado con ${criticos.length} productos`);
+  }
+
+  function showSection(section) {
+    document.getElementById('dashboard-section').classList.add('hidden');
+    document.getElementById('analiticas-section').classList.add('hidden');
+    document.getElementById('reportes-section').classList.add('hidden');
+    document.getElementById('productividad-section').classList.add('hidden');
+    document.getElementById(`${section}-section`).classList.remove('hidden');
+    const titles = { dashboard:'Dashboard Gerencial', analiticas:'Analíticas Avanzadas', reportes:'Reportes', productividad:'Productividad' };
+    document.getElementById('section-title').innerText = titles[section];
+    
+    // Cargar filtros cuando se muestra la sección de reportes
+    if (section === 'reportes') {
+      cargarFiltrosReportes();
+    }
+  }
+
+  // Inicializar
+  calcularKPIs();
+  cargarGraficos();
+  cargarProductosRentables();
+  cargarRankingVendedores();
+</script>
+</body>
+</html>

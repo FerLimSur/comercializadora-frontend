@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Administrador - Comercializadora XYZ</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  .sidebar { transition: all 0.3s ease; }
+  .stat-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+  .stat-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+  .active-tab { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+  .product-image { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; }
+  .image-preview { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid #e5e7eb; }
+</style>
+</head>
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <div class="sidebar w-64 bg-gray-900 text-white flex flex-col">
+    <div class="p-5 border-b border-gray-800">
+      <div class="flex items-center space-x-3">
+        <i class="fas fa-store text-2xl text-purple-400"></i>
+        <h2 class="text-xl font-bold">Admin Panel</h2>
+      </div>
+      <p class="text-xs text-gray-400 mt-2">Comercializadora XYZ</p>
+    </div>
+    
+    <nav class="flex-1 py-4">
+      <a href="#" onclick="showSection('dashboard')" class="flex items-center px-5 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition" id="nav-dashboard">
+        <i class="fas fa-tachometer-alt w-5 mr-3"></i> Dashboard
+      </a>
+      <a href="#" onclick="showSection('productos')" class="flex items-center px-5 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition">
+        <i class="fas fa-boxes w-5 mr-3"></i> Productos
+      </a>
+      <a href="#" onclick="showSection('usuarios')" class="flex items-center px-5 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition">
+        <i class="fas fa-users w-5 mr-3"></i> Usuarios
+      </a>
+      <a href="#" onclick="showSection('ventas')" class="flex items-center px-5 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition">
+        <i class="fas fa-chart-line w-5 mr-3"></i> Ventas
+      </a>
+      <a href="#" onclick="showSection('reportes')" class="flex items-center px-5 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition">
+        <i class="fas fa-file-alt w-5 mr-3"></i> Reportes
+      </a>
+      <a href="#" onclick="showSection('proveedores')" class="flex items-center px-5 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition">
+        <i class="fas fa-truck w-5 mr-3"></i> Proveedores
+      </a>
+      <a href="#" onclick="showSection('logs')" class="flex items-center px-5 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition">
+        <i class="fas fa-history w-5 mr-3"></i> Bitácora
+      </a>
+      <a href="#" onclick="showSection('configuracion')" class="flex items-center px-5 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition">
+        <i class="fas fa-cog w-5 mr-3"></i> Configuración
+      </a>
+      <a href="#" onclick="showSection('promociones')" class="flex items-center px-5 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition">
+        <i class="fas fa-tags w-5 mr-3"></i> Promociones
+      </a>
+      <a href="compras-proveedores.html" class="flex items-center px-5 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition">
+        <i class="fas fa-shopping-cart w-5 mr-3"></i> Compras
+        <span id="compras-pendientes-badge" class="ml-auto bg-red-500 text-xs px-2 py-1 rounded-full hidden">0</span>
+      </a>
+      <a href="dashboard-gerente.html" class="flex items-center px-5 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition">
+        <i class="fas fa-chart-line w-5 mr-3"></i> Gerencia
+      </a>
+      <a href="dashboard-solicitudes-admin.html" class="flex items-center px-5 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition">
+        <i class="fas fa-clipboard-list w-5 mr-3"></i> Solicitudes
+        <span id="solicitudes-pendientes-badge" class="ml-auto bg-red-500 text-xs px-2 py-1 rounded-full hidden">0</span>
+      </a>
+    </nav>
+    
+    <div class="p-4 border-t border-gray-800">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm" id="admin-name">Administrador</p>
+          <p class="text-xs text-gray-400">admin@comercializadora.com</p>
+        </div>
+        <a href="index.html" class="text-gray-400 hover:text-white">
+          <i class="fas fa-sign-out-alt"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto">
+    <div class="bg-white shadow-sm p-4 sticky top-0 z-10">
+      <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-800" id="section-title">Dashboard</h1>
+        <div class="flex items-center space-x-4">
+          <i class="fas fa-bell text-gray-500 cursor-pointer hover:text-gray-700"></i>
+          <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white">
+              <i class="fas fa-user"></i>
+            </div>
+            <span class="text-sm font-medium" id="user-name-display">Admin</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6" id="main-content">
+      <!-- Dashboard Section -->
+      <div id="dashboard-section">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div class="stat-card bg-white rounded-xl shadow-md p-6"><div class="flex items-center justify-between"><div><p class="text-gray-500 text-sm">Ventas del Mes</p><p class="text-2xl font-bold text-gray-800" id="ventas-mes">Bs. 12,450</p><p class="text-green-500 text-sm mt-2"><i class="fas fa-arrow-up"></i> +15% vs mes anterior</p></div><div class="bg-purple-100 rounded-full p-3"><i class="fas fa-chart-line text-purple-600 text-xl"></i></div></div></div>
+          <div class="stat-card bg-white rounded-xl shadow-md p-6"><div class="flex items-center justify-between"><div><p class="text-gray-500 text-sm">Total Productos</p><p class="text-2xl font-bold text-gray-800" id="total-productos">0</p></div><div class="bg-blue-100 rounded-full p-3"><i class="fas fa-boxes text-blue-600 text-xl"></i></div></div></div>
+          <div class="stat-card bg-white rounded-xl shadow-md p-6"><div class="flex items-center justify-between"><div><p class="text-gray-500 text-sm">Usuarios Registrados</p><p class="text-2xl font-bold text-gray-800" id="total-usuarios">0</p></div><div class="bg-green-100 rounded-full p-3"><i class="fas fa-users text-green-600 text-xl"></i></div></div></div>
+          <div class="stat-card bg-white rounded-xl shadow-md p-6"><div class="flex items-center justify-between"><div><p class="text-gray-500 text-sm">Stock Bajo</p><p class="text-2xl font-bold text-gray-800" id="stock-bajo-count">0</p></div><div class="bg-red-100 rounded-full p-3"><i class="fas fa-exclamation-triangle text-red-600 text-xl"></i></div></div></div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div class="bg-white rounded-xl shadow-md p-6"><h3 class="text-lg font-bold mb-4">Ventas por Mes</h3><canvas id="ventasChart" height="200"></canvas></div>
+          <div class="bg-white rounded-xl shadow-md p-6"><h3 class="text-lg font-bold mb-4">Productos Más Vendidos</h3><canvas id="topProductosChart" height="200"></canvas></div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8"><h3 class="text-lg font-bold mb-4"><i class="fas fa-bell text-red-500 mr-2"></i>Alertas de Stock Bajo</h3><div id="alertas-stock" class="space-y-2"></div></div>
+        <div class="bg-white rounded-xl shadow-md p-6"><h3 class="text-lg font-bold mb-4">Últimas Ventas</h3><div class="overflow-x-auto"><table class="w-full"><thead class="bg-gray-50"><tr><th class="px-4 py-2 text-left">ID</th><th class="px-4 py-2 text-left">Producto</th><th class="px-4 py-2 text-left">Cantidad</th><th class="px-4 py-2 text-left">Total</th><th class="px-4 py-2 text-left">Fecha</th></tr></thead><tbody id="ultimas-ventas"></tbody></table></div></div>
+      </div>
+
+      <!-- Productos Section -->
+      <div id="productos-section" class="hidden"><div class="bg-white rounded-xl shadow-md p-6"><div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold">Gestión de Productos</h3><button onclick="abrirModalProducto()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"><i class="fas fa-plus mr-2"></i>Nuevo Producto</button></div><div class="overflow-x-auto"><table class="w-full"><thead class="bg-gray-50"><tr><th class="px-4 py-2 text-left">Imagen</th><th class="px-4 py-2 text-left">Código</th><th class="px-4 py-2 text-left">Producto</th><th class="px-4 py-2 text-left">Categoría</th><th class="px-4 py-2 text-left">Precio</th><th class="px-4 py-2 text-left">Costo</th><th class="px-4 py-2 text-left">Stock</th><th class="px-4 py-2 text-left">Min/Max</th><th class="px-4 py-2 text-left">Acciones</th></tr></thead><tbody id="tabla-productos"></tbody></table></div></div></div>
+
+      <!-- Usuarios Section -->
+      <div id="usuarios-section" class="hidden"><div class="bg-white rounded-xl shadow-md p-6"><h3 class="text-xl font-bold mb-6">Gestión de Usuarios</h3><div class="overflow-x-auto"><table class="w-full"><thead class="bg-gray-50"><tr><th class="px-4 py-2 text-left">ID</th><th class="px-4 py-2 text-left">Nombre</th><th class="px-4 py-2 text-left">Email</th><th class="px-4 py-2 text-left">Rol</th><th class="px-4 py-2 text-left">Fecha Registro</th><th class="px-4 py-2 text-left">Acciones</th></tr></thead><tbody id="tabla-usuarios"></tbody></table></div></div></div>
+
+      <!-- Ventas Section -->
+      <div id="ventas-section" class="hidden"><div class="bg-white rounded-xl shadow-md p-6"><h3 class="text-xl font-bold mb-6">Reporte de Ventas</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"><input type="date" id="fecha-inicio" class="border rounded-lg p-2"><input type="date" id="fecha-fin" class="border rounded-lg p-2"><button onclick="filtrarVentas()" class="bg-purple-600 text-white px-4 py-2 rounded-lg">Filtrar</button></div><div class="overflow-x-auto"><table class="w-full"><thead class="bg-gray-50"><tr><th class="px-4 py-2">ID Venta</th><th class="px-4 py-2">Producto</th><th class="px-4 py-2">Cantidad</th><th class="px-4 py-2">Total</th><th class="px-4 py-2">Vendedor</th><th class="px-4 py-2">Fecha</th><tr></thead><tbody id="tabla-ventas"></tbody></table></div></div></div>
+
+      <!-- Reportes Section -->
+      <div id="reportes-section" class="hidden"><div class="bg-white rounded-xl shadow-md p-6"><h3 class="text-xl font-bold mb-6">Exportar Reportes</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="border rounded-lg p-6 text-center"><i class="fas fa-file-excel text-4xl text-green-600 mb-3"></i><h4 class="font-bold mb-2">Exportar a Excel</h4><p class="text-sm text-gray-600 mb-4">Exporta todos los datos de ventas a un archivo Excel</p><button onclick="exportarExcel()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"><i class="fas fa-download mr-2"></i>Exportar Excel</button></div><div class="border rounded-lg p-6 text-center"><i class="fas fa-file-pdf text-4xl text-red-600 mb-3"></i><h4 class="font-bold mb-2">Exportar a PDF</h4><p class="text-sm text-gray-600 mb-4">Exporta el reporte de ventas a un archivo PDF</p><button onclick="exportarPDF()" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"><i class="fas fa-download mr-2"></i>Exportar PDF</button></div></div></div></div>
+
+      <!-- Proveedores Section -->
+      <div id="proveedores-section" class="hidden"><div class="bg-white rounded-xl shadow-md p-6"><div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold">Gestión de Proveedores</h3><button onclick="abrirModalProveedor()" class="bg-purple-600 text-white px-4 py-2 rounded-lg"><i class="fas fa-plus mr-2"></i>Nuevo Proveedor</button></div><div class="overflow-x-auto"><table class="w-full"><thead class="bg-gray-50"><tr><th class="px-4 py-2">ID</th><th class="px-4 py-2">Nombre</th><th class="px-4 py-2">Contacto</th><th class="px-4 py-2">Teléfono</th><th class="px-4 py-2">Email</th><th class="px-4 py-2">Dirección</th><th class="px-4 py-2">Acciones</th></tr></thead><tbody id="tabla-proveedores-admin"></tbody></table></div></div></div>
+
+      <!-- Bitácora Section -->
+      <div id="logs-section" class="hidden"><div class="bg-white rounded-xl shadow-md p-6"><h3 class="text-xl font-bold mb-6">Registro de Actividades</h3><div class="overflow-x-auto"><table class="w-full"><thead class="bg-gray-50"><tr><th class="px-4 py-2">Fecha/Hora</th><th class="px-4 py-2">Usuario</th><th class="px-4 py-2">Acción</th><th class="px-4 py-2">Detalle</th><th class="px-4 py-2">IP</th></tr></thead><tbody id="tabla-logs"></tbody></table></div></div></div>
+
+      <!-- Configuración Section -->
+      <div id="configuracion-section" class="hidden"><div class="bg-white rounded-xl shadow-md p-6"><h3 class="text-xl font-bold mb-6">Configuración de Descuentos por Antigüedad</h3><div class="space-y-4"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium mb-2">Descuento 1 año (%)</label><input type="number" id="descuento-1" value="10" class="w-full border rounded-lg p-2"></div><div><label class="block text-sm font-medium mb-2">Descuento 3 años (%)</label><input type="number" id="descuento-3" value="15" class="w-full border rounded-lg p-2"></div><div><label class="block text-sm font-medium mb-2">Descuento 5 años (%)</label><input type="number" id="descuento-5" value="20" class="w-full border rounded-lg p-2"></div></div><button onclick="guardarConfiguracion()" class="bg-purple-600 text-white px-6 py-2 rounded-lg">Guardar Configuración</button></div></div></div>
+
+      <!-- Promociones Section -->
+      <div id="promociones-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold">Gestión de Promociones</h3>
+            <button onclick="abrirModalPromocion()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+              <i class="fas fa-plus mr-2"></i>Nueva Promoción
+            </button>
+          </div>
+          <div class="mb-8"><h4 class="font-bold text-lg mb-3 text-green-600">Promociones Activas</h4><div id="promociones-activas" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+          <div><h4 class="font-bold text-lg mb-3 text-gray-600">Promociones Inactivas</h4><div id="promociones-inactivas" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Producto -->
+<div id="modal-producto" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"><div class="bg-white rounded-xl p-6 w-full max-w-md max-h-screen overflow-y-auto"><h3 class="text-xl font-bold mb-4" id="modal-title">Nuevo Producto</h3><input type="hidden" id="producto-id"><div class="space-y-3"><input type="text" id="producto-codigo" placeholder="Código" class="w-full border rounded-lg p-2"><input type="text" id="producto-nombre" placeholder="Nombre" class="w-full border rounded-lg p-2"><select id="producto-categoria" class="w-full border rounded-lg p-2"><option value="Bebidas">Bebidas</option><option value="Granos">Granos</option><option value="Abarrotes">Abarrotes</option><option value="Lácteos">Lácteos</option><option value="Limpieza">Limpieza</option><option value="Snacks">Snacks</option></select><input type="number" id="producto-precio" placeholder="Precio Venta" class="w-full border rounded-lg p-2"><input type="number" id="producto-costo" placeholder="Costo" class="w-full border rounded-lg p-2"><input type="number" id="producto-stock" placeholder="Stock" class="w-full border rounded-lg p-2"><input type="number" id="producto-stock-min" placeholder="Stock Mínimo" class="w-full border rounded-lg p-2"><input type="number" id="producto-stock-max" placeholder="Stock Máximo" class="w-full border rounded-lg p-2"><div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center"><input type="file" id="producto-imagen" accept="image/jpeg,image/png,image/jpg" class="hidden" onchange="previsualizarImagen()"><div id="image-preview-container" class="mb-3"><img id="image-preview" class="image-preview mx-auto hidden" alt="Vista previa"></div><button type="button" onclick="document.getElementById('producto-imagen').click()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg"><i class="fas fa-upload mr-2"></i>Seleccionar Imagen</button></div></div><div class="flex justify-end space-x-3 mt-6"><button onclick="cerrarModalProducto()" class="px-4 py-2 border rounded-lg">Cancelar</button><button onclick="guardarProducto()" class="px-4 py-2 bg-purple-600 text-white rounded-lg">Guardar</button></div></div></div>
+
+<!-- Modal Proveedor -->
+<div id="modal-proveedor" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"><div class="bg-white rounded-xl p-6 w-full max-w-md"><h3 class="text-xl font-bold mb-4" id="modal-proveedor-title">Nuevo Proveedor</h3><input type="hidden" id="proveedor-id"><div class="space-y-3"><input type="text" id="proveedor-nombre" placeholder="Empresa" class="w-full border rounded-lg p-2"><input type="text" id="proveedor-contacto" placeholder="Contacto" class="w-full border rounded-lg p-2"><input type="text" id="proveedor-telefono" placeholder="Teléfono" class="w-full border rounded-lg p-2"><input type="email" id="proveedor-email" placeholder="Email" class="w-full border rounded-lg p-2"><input type="text" id="proveedor-direccion" placeholder="Dirección" class="w-full border rounded-lg p-2"></div><div class="flex justify-end space-x-3 mt-6"><button onclick="cerrarModalProveedor()" class="px-4 py-2 border rounded-lg">Cancelar</button><button onclick="guardarProveedor()" class="px-4 py-2 bg-purple-600 text-white rounded-lg">Guardar</button></div></div></div>
+
+<!-- Modal Promoción -->
+<div id="modal-promocion" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"><div class="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"><h3 class="text-xl font-bold mb-4" id="modal-promocion-title">Nueva Promoción</h3><input type="hidden" id="promocion-id"><div class="space-y-4"><div><label class="block text-sm font-medium mb-2">Título</label><input type="text" id="promocion-titulo" class="w-full border rounded-lg p-2"></div><div><label class="block text-sm font-medium mb-2">Descripción</label><textarea id="promocion-descripcion" rows="3" class="w-full border rounded-lg p-2"></textarea></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium mb-2">Tipo</label><select id="promocion-tipo" class="w-full border rounded-lg p-2" onchange="cambiarTipoPromocion()"><option value="porcentaje">Descuento %</option><option value="fijo">Descuento Fijo (Bs)</option><option value="2x1">2x1</option><option value="volumen">Descuento por Volumen</option></select></div><div><label class="block text-sm font-medium mb-2">Valor</label><input type="number" id="promocion-valor" class="w-full border rounded-lg p-2"></div></div><div><label class="block text-sm font-medium mb-2">Productos Aplicables</label><select id="promocion-productos" multiple class="w-full border rounded-lg p-2 h-32"></select><p class="text-xs text-gray-500">Ctrl+Click para múltiples</p></div><div class="grid grid-cols-2 gap-4"><div><label>Compra Mínima (Bs)</label><input type="number" id="promocion-compra-minima" class="w-full border rounded-lg p-2"></div><div><label>Cantidad Mínima</label><input type="number" id="promocion-cantidad-minima" class="w-full border rounded-lg p-2"></div></div><div class="grid grid-cols-2 gap-4"><div><label>Fecha Inicio</label><input type="date" id="promocion-fecha-inicio" class="w-full border rounded-lg p-2"></div><div><label>Fecha Fin</label><input type="date" id="promocion-fecha-fin" class="w-full border rounded-lg p-2"></div></div><div class="flex items-center space-x-4"><label class="flex items-center"><input type="checkbox" id="promocion-activa" class="mr-2"> Activa</label><label class="flex items-center"><input type="checkbox" id="promocion-todos-productos" class="mr-2" onchange="toggleTodosProductos()"> Todos los productos</label></div><div class="grid grid-cols-2 gap-4"><div><label>Icono</label><select id="promocion-icono" class="w-full border rounded-lg p-2"><option value="fas fa-gift">🎁 Regalo</option><option value="fas fa-tags">🏷️ Etiquetas</option><option value="fas fa-percent">%</option><option value="fas fa-star">⭐ Estrella</option><option value="fas fa-fire">🔥 Fuego</option></select></div><div><label>Color</label><select id="promocion-color" class="w-full border rounded-lg p-2"><option value="purple">Morado</option><option value="pink">Rosado</option><option value="blue">Azul</option><option value="green">Verde</option><option value="orange">Naranja</option></select></div></div></div><div class="flex justify-end space-x-3 mt-6"><button onclick="cerrarModalPromocion()" class="px-4 py-2 border rounded-lg">Cancelar</button><button onclick="guardarPromocion()" class="px-4 py-2 bg-purple-600 text-white rounded-lg">Guardar</button></div></div></div>
+
+<script>
+  // Data models con nomenclatura unificada (stock_minimo, stock_maximo)
+  let productos = JSON.parse(localStorage.getItem('productos')) || [
+    { id: 1, codigo: "P001", nombre: "Coca Cola 2L", precio: 12, costo: 8, stock: 50, stock_minimo: 10, stock_maximo: 200, categoria: "Bebidas", imagen: "https://images.unsplash.com/photo-1554866585-cd94860890b7?w=100&h=100&fit=crop" },
+    { id: 2, codigo: "P002", nombre: "Arroz 5kg", precio: 35, costo: 25, stock: 30, stock_minimo: 15, stock_maximo: 100, categoria: "Granos", imagen: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=100&h=100&fit=crop" },
+    { id: 3, codigo: "P003", nombre: "Aceite 1L", precio: 18, costo: 12, stock: 40, stock_minimo: 8, stock_maximo: 80, categoria: "Abarrotes", imagen: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=100&h=100&fit=crop" },
+    { id: 4, codigo: "P004", nombre: "Azúcar 1kg", precio: 8, costo: 5, stock: 60, stock_minimo: 10, stock_maximo: 150, categoria: "Abarrotes", imagen: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=100&h=100&fit=crop" },
+    { id: 5, codigo: "P005", nombre: "Leche 1L", precio: 7, costo: 4.5, stock: 25, stock_minimo: 8, stock_maximo: 80, categoria: "Lácteos", imagen: "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=100&h=100&fit=crop" }
+  ];
+  
+  let ventas = JSON.parse(localStorage.getItem('ventas')) || [
+    { id: 1, producto: "Coca Cola 2L", cantidad: 10, total: 120, vendedor: "Vendedor", fecha: "2024-01-15" },
+    { id: 2, producto: "Arroz 5kg", cantidad: 5, total: 175, vendedor: "Vendedor", fecha: "2024-01-20" },
+    { id: 3, producto: "Aceite 1L", cantidad: 8, total: 144, vendedor: "Vendedor", fecha: "2024-02-05" }
+  ];
+  
+  let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+  
+  let proveedores = JSON.parse(localStorage.getItem('proveedores')) || [
+    { id: 1, nombre: "Distribuidora Andina", contacto: "Juan Pérez", telefono: "777-1234", email: "ventas@andina.com", direccion: "Av. Principal #123" },
+    { id: 2, nombre: "Alimentos del Valle", contacto: "María López", telefono: "888-5678", email: "ventas@alimentosvalle.com", direccion: "Calle Comercio #456" }
+  ];
+  
+  let bitacora = JSON.parse(localStorage.getItem('bitacora')) || [];
+  
+  let promociones = JSON.parse(localStorage.getItem('promociones')) || [
+    { id: 1, titulo: "2x1 en Seleccionados", descripcion: "Lleva 2 productos seleccionados y paga solo 1.", tipo: "2x1", valor: 50, productos_aplicables: [1,2], todos_productos: false, compra_minima: 0, cantidad_minima: 2, fecha_inicio: "2024-01-01", fecha_fin: "2024-12-31", activa: true, icono: "fas fa-tags", color: "pink" },
+    { id: 2, titulo: "Descuento por Antigüedad", descripcion: "Clientes antiguos obtienen 10% descuento.", tipo: "porcentaje", valor: 10, productos_aplicables: [], todos_productos: true, compra_minima: 50, cantidad_minima: 1, fecha_inicio: "2024-01-01", fecha_fin: "2024-12-31", activa: true, icono: "fas fa-gift", color: "purple" }
+  ];
+
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  if (!currentUser || currentUser.role !== 'admin') window.location.href = 'login.html';
+  document.getElementById('admin-name').innerText = currentUser.name;
+  document.getElementById('user-name-display').innerText = currentUser.name;
+
+  // Función para normalizar productos
+  function normalizarProductos() {
+    productos = productos.map(p => ({
+      ...p,
+      stock_minimo: p.stock_minimo || p.stockMin || 10,
+      stock_maximo: p.stock_maximo || p.stockMax || 100
+    }));
+    localStorage.setItem('productos', JSON.stringify(productos));
+  }
+  normalizarProductos();
+
+  function registrarLog(accion, detalle) {
+    const log = { fecha: new Date().toISOString(), usuario: currentUser.name, accion, detalle, ip: "127.0.0.1" };
+    bitacora.unshift(log);
+    if (bitacora.length > 200) bitacora.pop();
+    localStorage.setItem('bitacora', JSON.stringify(bitacora));
+    if (!document.getElementById('logs-section').classList.contains('hidden')) cargarLogs();
+  }
+
+  let imagenBase64 = null;
+  function previsualizarImagen() { const file = document.getElementById('producto-imagen').files[0]; if (file) { const reader = new FileReader(); reader.onload = e => { imagenBase64 = e.target.result; document.getElementById('image-preview').src = imagenBase64; document.getElementById('image-preview').classList.remove('hidden'); }; reader.readAsDataURL(file); } }
+  
+  function actualizarStats() { 
+    const ventasMes = ventas.filter(v => v.fecha.startsWith(new Date().toISOString().slice(0,7))).reduce((s,v)=>s+v.total,0);
+    document.getElementById('ventas-mes').innerText = `Bs. ${ventasMes.toLocaleString()}`; 
+    document.getElementById('total-productos').innerText = productos.length; 
+    document.getElementById('total-usuarios').innerText = clientes.length; 
+    document.getElementById('stock-bajo-count').innerText = productos.filter(p => p.stock < (p.stock_minimo || 10)).length; 
+  }
+  
+  function cargarGraficos() { 
+    const ventasPorMes = {}; 
+    ventas.forEach(v => { let m = v.fecha.substring(0,7); ventasPorMes[m] = (ventasPorMes[m]||0)+v.total; }); 
+    new Chart(document.getElementById('ventasChart'), { type:'line', data:{ labels:Object.keys(ventasPorMes), datasets:[{ label:'Ventas (Bs)', data:Object.values(ventasPorMes), borderColor:'#667eea', tension:0.4 }] } }); 
+    const prodVend = {}; 
+    ventas.forEach(v => { prodVend[v.producto] = (prodVend[v.producto]||0)+v.cantidad; }); 
+    new Chart(document.getElementById('topProductosChart'), { type:'bar', data:{ labels:Object.keys(prodVend), datasets:[{ label:'Cantidad', data:Object.values(prodVend), backgroundColor:'#764ba2' }] } }); 
+  }
+  
+  function cargarAlertasStock() { 
+    const bajo = productos.filter(p => p.stock < (p.stock_minimo || 10)); 
+    const alertasDiv = document.getElementById('alertas-stock'); 
+    if(bajo.length===0) alertasDiv.innerHTML = '<p class="text-green-600">✓ No hay productos con stock bajo</p>'; 
+    else alertasDiv.innerHTML = bajo.map(p => `<div class="flex items-center justify-between bg-red-50 p-3 rounded-lg"><div class="flex items-center space-x-3"><img src="${p.imagen||'https://via.placeholder.com/40'}" class="w-10 h-10 rounded object-cover"><div><p class="font-semibold">${p.nombre}</p><p class="text-sm text-gray-600">Stock: ${p.stock} (Mín: ${p.stock_minimo||10})</p></div></div><button onclick="abrirModalProducto(${p.id})" class="bg-red-600 text-white px-3 py-1 rounded text-sm">Reponer</button></div>`).join(''); 
+  }
+  
+  function cargarUltimasVentas() { 
+    const tbody = document.getElementById('ultimas-ventas'); 
+    tbody.innerHTML = ventas.slice(-5).reverse().map(v => `<tr class="border-b"><td class="px-4 py-2">${v.id}</td><td class="px-4 py-2">${v.producto}</td><td class="px-4 py-2">${v.cantidad}</td><td class="px-4 py-2">Bs. ${v.total}</td><td class="px-4 py-2">${v.fecha}</td></tr>`).join(''); 
+  }
+  
+  function cargarTablaProductos() { 
+    const tbody = document.getElementById('tabla-productos'); 
+    tbody.innerHTML = productos.map(p => `<tr class="border-b"><td class="px-4 py-2"><img src="${p.imagen||'https://via.placeholder.com/50'}" class="product-image"></td><td class="px-4 py-2">${p.codigo||'N/A'}</td><td class="px-4 py-2">${p.nombre}</td><td class="px-4 py-2">${p.categoria}</td><td class="px-4 py-2">Bs. ${p.precio}</td><td class="px-4 py-2">Bs. ${p.costo||0}</td><td class="px-4 py-2 ${p.stock < (p.stock_minimo||10) ? 'text-red-600 font-bold' : ''}">${p.stock}</td><td class="px-4 py-2 text-xs">${p.stock_minimo||'-'}/${p.stock_maximo||'-'}</td><td class="px-4 py-2"><button onclick="abrirModalProducto(${p.id})" class="text-blue-600 mr-2"><i class="fas fa-edit"></i></button><button onclick="eliminarProducto(${p.id})" class="text-red-600"><i class="fas fa-trash"></i></button></td></tr>`).join(''); 
+  }
+  
+  function cargarTablaUsuarios() { 
+    const tbody = document.getElementById('tabla-usuarios'); 
+    tbody.innerHTML = clientes.map(c => `<tr class="border-b"><td class="px-4 py-2">${c.id}</td><td class="px-4 py-2">${c.nombre}</td><td class="px-4 py-2">${c.email}</td><td class="px-4 py-2">${c.role||'cliente'}</td><td class="px-4 py-2">${new Date(c.fechaRegistro).toLocaleDateString()}</td><td class="px-4 py-2"><button onclick="eliminarUsuario(${c.id})" class="text-red-600"><i class="fas fa-trash"></i></button></td></tr>`).join(''); 
+  }
+  
+  function cargarTablaVentas() { 
+    const tbody = document.getElementById('tabla-ventas'); 
+    tbody.innerHTML = ventas.map(v => `<tr class="border-b"><td class="px-4 py-2">${v.id}</td><td class="px-4 py-2">${v.producto}</td><td class="px-4 py-2">${v.cantidad}</td><td class="px-4 py-2">Bs. ${v.total}</td><td class="px-4 py-2">${v.vendedor}</td><td class="px-4 py-2">${v.fecha}</td></tr>`).join(''); 
+  }
+  
+  function filtrarVentas() { 
+    let filtradas = ventas; 
+    const inicio = document.getElementById('fecha-inicio').value; 
+    const fin = document.getElementById('fecha-fin').value; 
+    if(inicio) filtradas = filtradas.filter(v=>v.fecha>=inicio); 
+    if(fin) filtradas = filtradas.filter(v=>v.fecha<=fin); 
+    document.getElementById('tabla-ventas').innerHTML = filtradas.map(v=>`<tr class="border-b"><td class="px-4 py-2">${v.id}</td><td class="px-4 py-2">${v.producto}</td><td class="px-4 py-2">${v.cantidad}</td><td class="px-4 py-2">Bs. ${v.total}</td><td class="px-4 py-2">${v.vendedor}</td><td class="px-4 py-2">${v.fecha}</td></tr>`).join(''); 
+  }
+  
+  function cargarProveedores() { 
+    const tbody = document.getElementById('tabla-proveedores-admin'); 
+    tbody.innerHTML = proveedores.map(p => `<tr class="border-b"><td class="px-4 py-2">${p.id}</td><td class="px-4 py-2">${p.nombre}</td><td class="px-4 py-2">${p.contacto}</td><td class="px-4 py-2">${p.telefono}</td><td class="px-4 py-2">${p.email}</td><td class="px-4 py-2">${p.direccion || '-'}</td><td class="px-4 py-2"><button onclick="editarProveedor(${p.id})" class="text-blue-600 mr-2"><i class="fas fa-edit"></i></button><button onclick="eliminarProveedor(${p.id})" class="text-red-600"><i class="fas fa-trash"></i></button></td></tr>`).join(''); 
+  }
+  
+  let currentProveedorId = null;
+  function abrirModalProveedor(id=null) { 
+    if(id){ 
+      const p = proveedores.find(pr=>pr.id===id); 
+      if(p){ 
+        document.getElementById('proveedor-id').value=p.id; 
+        document.getElementById('proveedor-nombre').value=p.nombre; 
+        document.getElementById('proveedor-contacto').value=p.contacto; 
+        document.getElementById('proveedor-telefono').value=p.telefono; 
+        document.getElementById('proveedor-email').value=p.email; 
+        document.getElementById('proveedor-direccion').value=p.direccion || '';
+        currentProveedorId=id; 
+        document.getElementById('modal-proveedor-title').innerText='Editar Proveedor'; 
+      } 
+    } else { 
+      document.getElementById('proveedor-id').value=''; 
+      document.getElementById('proveedor-nombre').value=''; 
+      document.getElementById('proveedor-contacto').value=''; 
+      document.getElementById('proveedor-telefono').value=''; 
+      document.getElementById('proveedor-email').value=''; 
+      document.getElementById('proveedor-direccion').value='';
+      currentProveedorId=null; 
+      document.getElementById('modal-proveedor-title').innerText='Nuevo Proveedor'; 
+    } 
+    document.getElementById('modal-proveedor').classList.remove('hidden'); 
+    document.getElementById('modal-proveedor').classList.add('flex'); 
+  }
+  
+  function cerrarModalProveedor() { 
+    document.getElementById('modal-proveedor').classList.add('hidden'); 
+    document.getElementById('modal-proveedor').classList.remove('flex'); 
+  }
+  
+  function guardarProveedor() { 
+    const nombre = document.getElementById('proveedor-nombre').value; 
+    const contacto = document.getElementById('proveedor-contacto').value; 
+    const telefono = document.getElementById('proveedor-telefono').value; 
+    const email = document.getElementById('proveedor-email').value; 
+    const direccion = document.getElementById('proveedor-direccion').value; 
+    if(!nombre) return alert('Nombre requerido'); 
+    if(currentProveedorId){ 
+      const idx = proveedores.findIndex(p=>p.id===currentProveedorId); 
+      proveedores[idx] = {...proveedores[idx], nombre, contacto, telefono, email, direccion}; 
+      registrarLog('Editar Proveedor', `Editado proveedor ${nombre}`); 
+    } else { 
+      const newId = (proveedores.length?Math.max(...proveedores.map(p=>p.id))+1:1); 
+      proveedores.push({id:newId, nombre, contacto, telefono, email, direccion}); 
+      registrarLog('Crear Proveedor', `Nuevo proveedor ${nombre}`); 
+    } 
+    localStorage.setItem('proveedores', JSON.stringify(proveedores)); 
+    cerrarModalProveedor(); 
+    cargarProveedores(); 
+  }
+  
+  function eliminarProveedor(id) { 
+    if(confirm('¿Eliminar proveedor?')){ 
+      proveedores = proveedores.filter(p=>p.id!==id); 
+      localStorage.setItem('proveedores', JSON.stringify(proveedores)); 
+      registrarLog('Eliminar Proveedor', `Eliminado ID ${id}`); 
+      cargarProveedores(); 
+    } 
+  }
+  
+  function editarProveedor(id) { abrirModalProveedor(id); }
+  
+  function cargarLogs() { 
+    const tbody = document.getElementById('tabla-logs'); 
+    tbody.innerHTML = bitacora.map(l => `<tr class="border-b"><td class="px-4 py-2">${new Date(l.fecha).toLocaleString()}</td><td class="px-4 py-2">${l.usuario}</td><td class="px-4 py-2">${l.accion}</td><td class="px-4 py-2">${l.detalle}</td><td class="px-4 py-2">${l.ip}</td></tr>`).join(''); 
+  }
+  
+  let currentProductoId = null;
+  function abrirModalProducto(id = null) { 
+    imagenBase64 = null; 
+    document.getElementById('producto-imagen').value = ''; 
+    document.getElementById('image-preview').classList.add('hidden'); 
+    if(id){ 
+      const p = productos.find(pr=>pr.id===id); 
+      if(p){ 
+        document.getElementById('modal-title').innerText='Editar Producto'; 
+        document.getElementById('producto-id').value=p.id; 
+        document.getElementById('producto-codigo').value=p.codigo||''; 
+        document.getElementById('producto-nombre').value=p.nombre; 
+        document.getElementById('producto-categoria').value=p.categoria; 
+        document.getElementById('producto-precio').value=p.precio; 
+        document.getElementById('producto-costo').value=p.costo||''; 
+        document.getElementById('producto-stock').value=p.stock; 
+        document.getElementById('producto-stock-min').value=p.stock_minimo||''; 
+        document.getElementById('producto-stock-max').value=p.stock_maximo||''; 
+        if(p.imagen){ 
+          document.getElementById('image-preview').src=p.imagen; 
+          document.getElementById('image-preview').classList.remove('hidden'); 
+          imagenBase64=p.imagen; 
+        } 
+        currentProductoId=id; 
+      } 
+    } else { 
+      document.getElementById('modal-title').innerText='Nuevo Producto'; 
+      document.getElementById('producto-id').value=''; 
+      document.getElementById('producto-codigo').value=''; 
+      document.getElementById('producto-nombre').value=''; 
+      document.getElementById('producto-categoria').value='Bebidas'; 
+      document.getElementById('producto-precio').value=''; 
+      document.getElementById('producto-costo').value=''; 
+      document.getElementById('producto-stock').value=''; 
+      document.getElementById('producto-stock-min').value=''; 
+      document.getElementById('producto-stock-max').value=''; 
+      currentProductoId=null; 
+    } 
+    document.getElementById('modal-producto').classList.remove('hidden'); 
+    document.getElementById('modal-producto').classList.add('flex'); 
+  }
+  
+  function cerrarModalProducto() { 
+    document.getElementById('modal-producto').classList.add('hidden'); 
+    document.getElementById('modal-producto').classList.remove('flex'); 
+  }
+  
+  function guardarProducto() { 
+    const codigo = document.getElementById('producto-codigo').value; 
+    const nombre = document.getElementById('producto-nombre').value; 
+    const categoria = document.getElementById('producto-categoria').value; 
+    const precio = parseFloat(document.getElementById('producto-precio').value); 
+    const costo = parseFloat(document.getElementById('producto-costo').value)||0; 
+    const stock = parseInt(document.getElementById('producto-stock').value); 
+    const stock_minimo = parseInt(document.getElementById('producto-stock-min').value); 
+    const stock_maximo = parseInt(document.getElementById('producto-stock-max').value); 
+    if(!nombre || isNaN(precio) || isNaN(stock)) return alert('Complete campos obligatorios'); 
+    let imagen = imagenBase64; 
+    if(!imagen && !currentProductoId) imagen = 'https://via.placeholder.com/100'; 
+    if(currentProductoId){ 
+      const idx = productos.findIndex(p=>p.id===currentProductoId); 
+      productos[idx] = {...productos[idx], codigo, nombre, categoria, precio, costo, stock, stock_minimo, stock_maximo, imagen: imagen||productos[idx].imagen}; 
+      registrarLog('Editar Producto', `Editado ${nombre}`); 
+    } else { 
+      const newId = Math.max(...productos.map(p=>p.id),0)+1; 
+      productos.push({ id:newId, codigo, nombre, categoria, precio, costo, stock, stock_minimo, stock_maximo, imagen }); 
+      registrarLog('Crear Producto', `Nuevo ${nombre}`); 
+    } 
+    localStorage.setItem('productos', JSON.stringify(productos)); 
+    cerrarModalProducto(); 
+    cargarTablaProductos(); 
+    actualizarStats(); 
+    cargarAlertasStock(); 
+  }
+  
+  function eliminarProducto(id) { 
+    if(confirm('¿Eliminar producto?')){ 
+      const prod = productos.find(p=>p.id===id); 
+      productos = productos.filter(p=>p.id!==id); 
+      localStorage.setItem('productos', JSON.stringify(productos)); 
+      registrarLog('Eliminar Producto', `Eliminado ${prod?.nombre}`); 
+      cargarTablaProductos(); 
+      actualizarStats(); 
+      cargarAlertasStock(); 
+    } 
+  }
+  
+  function eliminarUsuario(id) { 
+    if(confirm('Eliminar usuario?')){ 
+      clientes = clientes.filter(c=>c.id!==id); 
+      localStorage.setItem('clientes', JSON.stringify(clientes)); 
+      registrarLog('Eliminar Usuario', `ID ${id}`); 
+      cargarTablaUsuarios(); 
+      actualizarStats(); 
+    } 
+  }
+  
+  function exportarExcel() { 
+    let csv="ID Venta,Producto,Cantidad,Total,Vendedor,Fecha\n"; 
+    ventas.forEach(v=>{ csv+=`${v.id},${v.producto},${v.cantidad},${v.total},${v.vendedor},${v.fecha}\n`; }); 
+    const blob=new Blob([csv],{type:'text/csv'}); 
+    const a=document.createElement('a'); 
+    a.href=URL.createObjectURL(blob); 
+    a.download='reporte_ventas.csv'; 
+    a.click(); 
+    URL.revokeObjectURL(a.href); 
+    alert('Exportado CSV'); 
+  }
+  
+  function exportarPDF() { 
+    alert('Funcionalidad PDF - Vista de impresión'); 
+    window.print(); 
+  }
+  
+  function guardarConfiguracion() { 
+    const conf={ año1:document.getElementById('descuento-1').value, año3:document.getElementById('descuento-3').value, año5:document.getElementById('descuento-5').value }; 
+    localStorage.setItem('configDescuentos', JSON.stringify(conf)); 
+    alert('Configuración guardada'); 
+  }
+  
+  // ========== PROMOCIONES ==========
+  function cargarSelectProductosPromocion() { 
+    const select = document.getElementById('promocion-productos'); 
+    select.innerHTML = productos.map(p => `<option value="${p.id}">${p.nombre} - Bs. ${p.precio}</option>`).join(''); 
+  }
+  
+  function cargarPromociones() {
+    const hoy = new Date();
+    const activas = promociones.filter(p => p.activa && new Date(p.fecha_fin) >= hoy);
+    const inactivas = promociones.filter(p => !p.activa || new Date(p.fecha_fin) < hoy);
+    const colores = { purple:'from-purple-500 to-pink-500', pink:'from-pink-500 to-rose-500', blue:'from-blue-500 to-cyan-500', green:'from-green-500 to-emerald-500', orange:'from-orange-500 to-red-500', red:'from-red-500 to-rose-600' };
+    document.getElementById('promociones-activas').innerHTML = activas.map(p => `<div class="border rounded-lg overflow-hidden shadow-md"><div class="bg-gradient-to-r ${colores[p.color]} p-4 text-white"><div class="flex justify-between items-start"><div><i class="${p.icono} text-2xl mr-2"></i><h4 class="font-bold text-lg">${p.titulo}</h4></div><span class="bg-white bg-opacity-30 px-2 py-1 rounded text-sm">${p.tipo==='porcentaje'?p.valor+'%':p.tipo==='fijo'?'Bs. '+p.valor:p.tipo==='2x1'?'2x1':'Volumen'}</span></div></div><div class="p-4"><p class="text-gray-600 text-sm mb-3">${p.descripcion}</p><div class="text-xs text-gray-500 mb-3"><p>📅 ${p.fecha_inicio} → ${p.fecha_fin}</p>${p.compra_minima>0?`<p>💰 Compra mínima: Bs. ${p.compra_minima}</p>`:''}${p.cantidad_minima>1?`<p>📦 Cantidad mínima: ${p.cantidad_minima}</p>`:''}</div><div class="flex justify-end space-x-2"><button onclick="editarPromocion(${p.id})" class="text-blue-600"><i class="fas fa-edit"></i> Editar</button><button onclick="togglePromocion(${p.id})" class="text-yellow-600"><i class="fas fa-pause"></i> Desactivar</button><button onclick="eliminarPromocion(${p.id})" class="text-red-600"><i class="fas fa-trash"></i> Eliminar</button></div></div></div>`).join('');
+    document.getElementById('promociones-inactivas').innerHTML = inactivas.map(p => `<div class="border rounded-lg overflow-hidden shadow-md opacity-60"><div class="bg-gradient-to-r ${colores[p.color]} p-4 text-white"><div class="flex justify-between items-start"><div><i class="${p.icono} text-2xl mr-2"></i><h4 class="font-bold text-lg">${p.titulo}</h4></div><span class="bg-white bg-opacity-30 px-2 py-1 rounded text-sm">Inactiva</span></div></div><div class="p-4"><p class="text-gray-600 text-sm mb-3">${p.descripcion}</p><div class="flex justify-end space-x-2"><button onclick="editarPromocion(${p.id})" class="text-blue-600"><i class="fas fa-edit"></i> Editar</button><button onclick="togglePromocion(${p.id})" class="text-green-600"><i class="fas fa-play"></i> Activar</button><button onclick="eliminarPromocion(${p.id})" class="text-red-600"><i class="fas fa-trash"></i> Eliminar</button></div></div></div>`).join('');
+  }
+  
+  let currentPromocionId = null;
+  function abrirModalPromocion(id = null) {
+    if(id){ const p = promociones.find(promo=>promo.id===id); if(p){ document.getElementById('modal-promocion-title').innerText = 'Editar Promoción'; document.getElementById('promocion-id').value = p.id; document.getElementById('promocion-titulo').value = p.titulo; document.getElementById('promocion-descripcion').value = p.descripcion; document.getElementById('promocion-tipo').value = p.tipo; document.getElementById('promocion-valor').value = p.valor; document.getElementById('promocion-compra-minima').value = p.compra_minima; document.getElementById('promocion-cantidad-minima').value = p.cantidad_minima; document.getElementById('promocion-fecha-inicio').value = p.fecha_inicio; document.getElementById('promocion-fecha-fin').value = p.fecha_fin; document.getElementById('promocion-activa').checked = p.activa; document.getElementById('promocion-todos-productos').checked = p.todos_productos; document.getElementById('promocion-icono').value = p.icono; document.getElementById('promocion-color').value = p.color; const select = document.getElementById('promocion-productos'); for(let opt of select.options) opt.selected = p.productos_aplicables.includes(parseInt(opt.value)); document.getElementById('promocion-productos').disabled = p.todos_productos; currentPromocionId = id; } } else { document.getElementById('modal-promocion-title').innerText = 'Nueva Promoción'; document.getElementById('promocion-id').value = ''; document.getElementById('promocion-titulo').value = ''; document.getElementById('promocion-descripcion').value = ''; document.getElementById('promocion-tipo').value = 'porcentaje'; document.getElementById('promocion-valor').value = ''; document.getElementById('promocion-compra-minima').value = '0'; document.getElementById('promocion-cantidad-minima').value = '1'; document.getElementById('promocion-fecha-inicio').value = new Date().toISOString().split('T')[0]; document.getElementById('promocion-fecha-fin').value = new Date(new Date().setMonth(new Date().getMonth()+3)).toISOString().split('T')[0]; document.getElementById('promocion-activa').checked = true; document.getElementById('promocion-todos-productos').checked = false; document.getElementById('promocion-icono').value = 'fas fa-tags'; document.getElementById('promocion-color').value = 'purple'; document.getElementById('promocion-productos').disabled = false; currentPromocionId = null; } cambiarTipoPromocion(); document.getElementById('modal-promocion').classList.remove('hidden'); document.getElementById('modal-promocion').classList.add('flex');
+  }
+  
+  function cerrarModalPromocion() { document.getElementById('modal-promocion').classList.add('hidden'); document.getElementById('modal-promocion').classList.remove('flex'); }
+  function toggleTodosProductos() { const checked = document.getElementById('promocion-todos-productos').checked; document.getElementById('promocion-productos').disabled = checked; if(checked){ const select = document.getElementById('promocion-productos'); for(let opt of select.options) opt.selected = false; } }
+  function cambiarTipoPromocion() { const tipo = document.getElementById('promocion-tipo').value; const valorInput = document.getElementById('promocion-valor'); if(tipo === '2x1'){ valorInput.value = 50; valorInput.disabled = true; } else { valorInput.disabled = false; if(tipo === 'porcentaje') valorInput.placeholder = '% descuento'; else if(tipo === 'fijo') valorInput.placeholder = 'Monto fijo'; else valorInput.placeholder = '% descuento por volumen'; } }
+  
+  function guardarPromocion() { 
+    const titulo = document.getElementById('promocion-titulo').value; 
+    const descripcion = document.getElementById('promocion-descripcion').value; 
+    const tipo = document.getElementById('promocion-tipo').value; 
+    let valor = parseFloat(document.getElementById('promocion-valor').value); 
+    const compra_minima = parseFloat(document.getElementById('promocion-compra-minima').value); 
+    const cantidad_minima = parseInt(document.getElementById('promocion-cantidad-minima').value); 
+    const fecha_inicio = document.getElementById('promocion-fecha-inicio').value; 
+    const fecha_fin = document.getElementById('promocion-fecha-fin').value; 
+    const activa = document.getElementById('promocion-activa').checked; 
+    const todos_productos = document.getElementById('promocion-todos-productos').checked; 
+    const icono = document.getElementById('promocion-icono').value; 
+    const color = document.getElementById('promocion-color').value; 
+    let productos_aplicables = []; 
+    if(!todos_productos){ const select = document.getElementById('promocion-productos'); for(let opt of select.options) if(opt.selected) productos_aplicables.push(parseInt(opt.value)); } 
+    if(!titulo || !descripcion) return alert('Complete título y descripción'); 
+    if(tipo !== '2x1' && (isNaN(valor) || valor<=0)) return alert('Ingrese valor de descuento válido'); 
+    if(currentPromocionId){ 
+      const index = promociones.findIndex(p => p.id === currentPromocionId); 
+      promociones[index] = { ...promociones[index], titulo, descripcion, tipo, valor, productos_aplicables, todos_productos, compra_minima, cantidad_minima, fecha_inicio, fecha_fin, activa, icono, color }; 
+      registrarLog('Editar Promoción', `Editada promoción ${titulo}`); 
+    } else { 
+      const newId = Math.max(...promociones.map(p=>p.id),0)+1; 
+      promociones.push({ id: newId, titulo, descripcion, tipo, valor, productos_aplicables, todos_productos, compra_minima, cantidad_minima, fecha_inicio, fecha_fin, activa, icono, color }); 
+      registrarLog('Crear Promoción', `Nueva promoción ${titulo}`); 
+    } 
+    localStorage.setItem('promociones', JSON.stringify(promociones)); 
+    cerrarModalPromocion(); 
+    cargarPromociones(); 
+  }
+  
+  function editarPromocion(id) { abrirModalPromocion(id); }
+  function togglePromocion(id) { const promocion = promociones.find(p => p.id === id); promocion.activa = !promocion.activa; localStorage.setItem('promociones', JSON.stringify(promociones)); registrarLog('Cambiar Estado Promoción', `${promocion.titulo} -> ${promocion.activa ? 'Activada' : 'Desactivada'}`); cargarPromociones(); }
+  function eliminarPromocion(id) { if(confirm('¿Eliminar promoción?')){ const promo = promociones.find(p=>p.id===id); promociones = promociones.filter(p => p.id !== id); localStorage.setItem('promociones', JSON.stringify(promociones)); registrarLog('Eliminar Promoción', `Eliminada ${promo?.titulo}`); cargarPromociones(); } }
+
+  // Funciones para actualizar badges en tiempo real
+  function actualizarBadgeSolicitudes() {
+    const solicitudes = JSON.parse(localStorage.getItem('solicitudes_reposicion')) || [];
+    const pendientes = solicitudes.filter(s => s.estado === 'pendiente').length;
+    const badge = document.getElementById('solicitudes-pendientes-badge');
+    if (pendientes > 0) { badge.innerText = pendientes; badge.classList.remove('hidden'); } 
+    else { badge.classList.add('hidden'); }
+  }
+  
+  function actualizarBadgeCompras() {
+    const compras = JSON.parse(localStorage.getItem('compras_pendientes')) || [];
+    const badge = document.getElementById('compras-pendientes-badge');
+    if(compras.length > 0){ badge.innerText = compras.length; badge.classList.remove('hidden'); } 
+    else { badge.classList.add('hidden'); }
+  }
+  
+  // Escuchar cambios en localStorage
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'solicitudes_reposicion') actualizarBadgeSolicitudes();
+    if (event.key === 'compras_pendientes') actualizarBadgeCompras();
+    if (event.key === 'productos') {
+      productos = JSON.parse(localStorage.getItem('productos')) || productos;
+      normalizarProductos();
+      cargarTablaProductos();
+      actualizarStats();
+      cargarAlertasStock();
+    }
+    if (event.key === 'ventas') {
+      ventas = JSON.parse(localStorage.getItem('ventas')) || ventas;
+      actualizarStats();
+      cargarUltimasVentas();
+    }
+  });
+
+  function showSection(section) {
+    const sections = ['dashboard','productos','usuarios','ventas','reportes','proveedores','logs','configuracion','promociones'];
+    sections.forEach(s => { const el = document.getElementById(`${s}-section`); if(el) el.classList.add('hidden'); });
+    document.getElementById(`${section}-section`).classList.remove('hidden');
+    const titles = { dashboard:'Dashboard', productos:'Gestión de Productos', usuarios:'Gestión de Usuarios', ventas:'Reporte de Ventas', reportes:'Reportes y Exportaciones', proveedores:'Gestión de Proveedores', logs:'Bitácora de Actividades', configuracion:'Configuración', promociones:'Gestión de Promociones' };
+    document.getElementById('section-title').innerText = titles[section];
+    if(section === 'proveedores') cargarProveedores();
+    if(section === 'logs') cargarLogs();
+    if(section === 'promociones') { cargarSelectProductosPromocion(); cargarPromociones(); }
+  }
+
+  function initDashboard() { 
+    actualizarStats(); 
+    cargarGraficos(); 
+    cargarAlertasStock(); 
+    cargarUltimasVentas(); 
+    cargarTablaProductos(); 
+    cargarTablaUsuarios(); 
+    cargarTablaVentas(); 
+    cargarProveedores(); 
+    cargarLogs(); 
+    cargarSelectProductosPromocion(); 
+    cargarPromociones(); 
+    registrarLog('Login Admin', 'Ingreso al panel de administración');
+    actualizarBadgeCompras();
+    actualizarBadgeSolicitudes();
+  }
+  initDashboard();
+</script>
+</body>
+</html>

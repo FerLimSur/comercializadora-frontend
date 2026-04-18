@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Almacén - Comercializadora XYZ</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  .sidebar { transition: all 0.3s ease; }
+  .stat-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+  .stat-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+  .product-image { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; }
+</style>
+</head>
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <div class="sidebar w-64 bg-orange-800 text-white flex flex-col">
+    <div class="p-5 border-b border-orange-700">
+      <div class="flex items-center space-x-3">
+        <i class="fas fa-warehouse text-2xl"></i>
+        <h2 class="text-xl font-bold">Almacén</h2>
+      </div>
+      <p class="text-xs text-orange-300 mt-2">Control de Inventario</p>
+    </div>
+    
+    <nav class="flex-1 py-4">
+      <a href="#" onclick="showSection('dashboard')" class="flex items-center px-5 py-3 hover:bg-orange-700 transition">
+        <i class="fas fa-tachometer-alt w-5 mr-3"></i> Dashboard
+      </a>
+      <a href="#" onclick="showSection('inventario')" class="flex items-center px-5 py-3 hover:bg-orange-700 transition">
+        <i class="fas fa-boxes w-5 mr-3"></i> Inventario
+      </a>
+      <a href="#" onclick="showSection('movimientos')" class="flex items-center px-5 py-3 hover:bg-orange-700 transition">
+        <i class="fas fa-exchange-alt w-5 mr-3"></i> Movimientos
+      </a>
+      <a href="#" onclick="showSection('kardex')" class="flex items-center px-5 py-3 hover:bg-orange-700 transition">
+        <i class="fas fa-history w-5 mr-3"></i> Kardex
+      </a>
+      <a href="#" onclick="showSection('alertas')" class="flex items-center px-5 py-3 hover:bg-orange-700 transition">
+        <i class="fas fa-bell w-5 mr-3"></i> Alertas
+      </a>
+      <a href="#" onclick="showSection('proveedores')" class="flex items-center px-5 py-3 hover:bg-orange-700 transition">
+        <i class="fas fa-truck w-5 mr-3"></i> Proveedores
+      </a>
+      <a href="#" onclick="showSection('solicitudes')" class="flex items-center px-5 py-3 hover:bg-orange-700 transition">
+        <i class="fas fa-clipboard-list w-5 mr-3"></i> Solicitar Productos
+      </a>
+      <a href="#" onclick="showSection('mis-solicitudes')" class="flex items-center px-5 py-3 hover:bg-orange-700 transition">
+        <i class="fas fa-history w-5 mr-3"></i> Mis Solicitudes
+      </a>
+    </nav>
+    
+    <div class="p-4 border-t border-orange-700">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm" id="almacen-name">Enc. Almacén</p>
+          <p class="text-xs text-orange-300">almacen@comercializadora.com</p>
+        </div>
+        <a href="index.html" class="text-orange-300 hover:text-white">
+          <i class="fas fa-sign-out-alt"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto">
+    <div class="bg-white shadow-sm p-4 sticky top-0 z-10">
+      <h1 class="text-2xl font-bold text-gray-800" id="section-title">Dashboard Almacén</h1>
+    </div>
+
+    <div class="p-6" id="main-content">
+      <!-- Dashboard Section -->
+      <div id="dashboard-section">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div class="stat-card bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">Total Productos</p>
+                <p class="text-2xl font-bold text-gray-800" id="total-productos">0</p>
+              </div>
+              <div class="bg-orange-100 rounded-full p-3"><i class="fas fa-boxes text-orange-600 text-xl"></i></div>
+            </div>
+          </div>
+          <div class="stat-card bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">Stock Bajo</p>
+                <p class="text-2xl font-bold text-red-600" id="stock-bajo">0</p>
+              </div>
+              <div class="bg-red-100 rounded-full p-3"><i class="fas fa-exclamation-triangle text-red-600 text-xl"></i></div>
+            </div>
+          </div>
+          <div class="stat-card bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">Stock Alto</p>
+                <p class="text-2xl font-bold text-yellow-600" id="stock-alto">0</p>
+              </div>
+              <div class="bg-yellow-100 rounded-full p-3"><i class="fas fa-arrow-up text-yellow-600 text-xl"></i></div>
+            </div>
+          </div>
+          <div class="stat-card bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">Movimientos Hoy</p>
+                <p class="text-2xl font-bold text-gray-800" id="movimientos-hoy">0</p>
+              </div>
+              <div class="bg-green-100 rounded-full p-3"><i class="fas fa-exchange-alt text-green-600 text-xl"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráfico de Stock -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+          <h3 class="text-lg font-bold mb-4">Stock por Categoría</h3>
+          <canvas id="stockChart" height="100"></canvas>
+        </div>
+
+        <!-- Últimos Movimientos -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-lg font-bold mb-4">Últimos Movimientos</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr><th class="px-4 py-2">Fecha</th><th class="px-4 py-2">Producto</th><th class="px-4 py-2">Tipo</th><th class="px-4 py-2">Cantidad</th><th class="px-4 py-2">Usuario</th></tr>
+              </thead>
+              <tbody id="ultimos-movimientos"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inventario Section -->
+      <div id="inventario-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold">Gestión de Inventario</h3>
+            <button onclick="abrirModalAjuste()" class="bg-orange-600 text-white px-4 py-2 rounded-lg">
+              <i class="fas fa-plus mr-2"></i>Ajuste de Inventario
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr><th class="px-4 py-2">Imagen</th><th class="px-4 py-2">Código</th><th class="px-4 py-2">Producto</th><th class="px-4 py-2">Categoría</th><th class="px-4 py-2">Stock</th><th class="px-4 py-2">Stock Mín.</th><th class="px-4 py-2">Stock Máx.</th><th class="px-4 py-2">Acciones</th></tr>
+              </thead>
+              <tbody id="tabla-inventario"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Movimientos Section -->
+      <div id="movimientos-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-6">Registrar Movimiento</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium mb-2">Producto</label>
+              <select id="mov-producto" class="w-full border rounded-lg p-2 mb-4" onchange="cargarDatosProducto()">
+                <option value="">Seleccione un producto</option>
+              </select>
+              
+              <label class="block text-sm font-medium mb-2">Tipo de Movimiento</label>
+              <select id="mov-tipo" class="w-full border rounded-lg p-2 mb-4">
+                <option value="entrada">📥 Entrada (Compra)</option>
+                <option value="salida">📤 Salida (Venta)</option>
+                <option value="ajuste">⚙️ Ajuste</option>
+              </select>
+              
+              <label class="block text-sm font-medium mb-2">Cantidad</label>
+              <input type="number" id="mov-cantidad" class="w-full border rounded-lg p-2 mb-4" oninput="validarStock()">
+              
+              <label class="block text-sm font-medium mb-2">Motivo / Referencia</label>
+              <input type="text" id="mov-motivo" placeholder="Ej: Compra a Proveedor, Venta #123" class="w-full border rounded-lg p-2 mb-4">
+              
+              <div id="stock-actual" class="text-sm text-gray-600 mb-4"></div>
+            </div>
+            
+            <div class="bg-gray-50 rounded-lg p-6">
+              <h4 class="font-bold text-lg mb-4">Resumen del Producto</h4>
+              <div id="resumen-producto">
+                <p class="text-gray-500">Seleccione un producto para ver detalles</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex justify-end mt-6">
+            <button onclick="registrarMovimiento()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+              <i class="fas fa-save mr-2"></i>Registrar Movimiento
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kardex Section -->
+      <div id="kardex-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-6">Kardex de Productos</h3>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Seleccionar Producto</label>
+            <select id="kardex-producto" class="w-full md:w-1/2 border rounded-lg p-2" onchange="cargarKardex()">
+              <option value="">Seleccione un producto</option>
+            </select>
+          </div>
+          <div id="kardex-info" class="mb-4 p-4 bg-gray-50 rounded-lg hidden">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div><p class="text-gray-500">Stock Actual</p><p class="font-bold text-xl" id="kardex-stock">0</p></div>
+              <div><p class="text-gray-500">Stock Mínimo</p><p class="font-bold" id="kardex-min">0</p></div>
+              <div><p class="text-gray-500">Stock Máximo</p><p class="font-bold" id="kardex-max">0</p></div>
+              <div><p class="text-gray-500">Valor Inventario</p><p class="font-bold text-green-600" id="kardex-valor">Bs. 0</p></div>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr><th class="px-4 py-2">Fecha</th><th class="px-4 py-2">Tipo</th><th class="px-4 py-2">Entrada</th><th class="px-4 py-2">Salida</th><th class="px-4 py-2">Saldo</th><th class="px-4 py-2">Motivo</th><th class="px-4 py-2">Usuario</th></tr>
+              </thead>
+              <tbody id="tabla-kardex"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alertas Section -->
+      <div id="alertas-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-6">Alertas de Inventario</h3>
+          
+          <div class="mb-8">
+            <h4 class="font-bold text-red-600 mb-3"><i class="fas fa-exclamation-circle mr-2"></i>Stock Bajo (Por debajo del mínimo)</h4>
+            <div id="alertas-stock-bajo" class="space-y-2"></div>
+          </div>
+          
+          <div>
+            <h4 class="font-bold text-yellow-600 mb-3"><i class="fas fa-arrow-up mr-2"></i>Stock Alto (Por encima del máximo)</h4>
+            <div id="alertas-stock-alto" class="space-y-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Proveedores Section -->
+      <div id="proveedores-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold">Proveedores Registrados</h3>
+            <button onclick="abrirModalProveedor()" class="bg-orange-600 text-white px-4 py-2 rounded-lg">
+              <i class="fas fa-plus mr-2"></i>Nuevo Proveedor
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr><th class="px-4 py-2">ID</th><th class="px-4 py-2">Nombre</th><th class="px-4 py-2">Contacto</th><th class="px-4 py-2">Teléfono</th><th class="px-4 py-2">Email</th><th class="px-4 py-2">Dirección</th><th class="px-4 py-2">Acciones</th></tr>
+              </thead>
+              <tbody id="tabla-proveedores"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Solicitar Productos Section -->
+      <div id="solicitudes-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-6">Solicitar Reposición de Productos</h3>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Formulario de solicitud -->
+            <div class="lg:col-span-2">
+              <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium mb-2">Producto</label>
+                    <select id="solicitud-producto" class="w-full border rounded-lg p-2" onchange="cargarInfoProductoSolicitud()">
+                      <option value="">Seleccione un producto</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-2">Cantidad Requerida</label>
+                    <input type="number" id="solicitud-cantidad" class="w-full border rounded-lg p-2" placeholder="Cantidad">
+                  </div>
+                </div>
+                
+                <div class="mt-4">
+                  <label class="block text-sm font-medium mb-2">Motivo de la Solicitud</label>
+                  <select id="solicitud-motivo" class="w-full border rounded-lg p-2 mb-2">
+                    <option value="stock_bajo">Stock por debajo del mínimo</option>
+                    <option value="alta_demanda">Alta demanda del producto</option>
+                    <option value="preventivo">Reposición preventiva</option>
+                    <option value="temporada">Temporada alta</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                  <textarea id="solicitud-observaciones" rows="2" class="w-full border rounded-lg p-2" placeholder="Observaciones adicionales..."></textarea>
+                </div>
+                
+                <div class="mt-4">
+                  <label class="block text-sm font-medium mb-2">Urgencia</label>
+                  <select id="solicitud-urgencia" class="w-full border rounded-lg p-2">
+                    <option value="baja">🟢 Baja - Puede esperar 15 días</option>
+                    <option value="media">🟡 Media - Necesario en 7 días</option>
+                    <option value="alta">🔴 Alta - Urgente (menos de 3 días)</option>
+                    <option value="critica">⚫ Crítica - Stock agotado</option>
+                  </select>
+                </div>
+                
+                <button onclick="crearSolicitud()" class="w-full bg-orange-600 text-white py-2 rounded-lg mt-4 hover:bg-orange-700">
+                  <i class="fas fa-paper-plane mr-2"></i>Enviar Solicitud
+                </button>
+              </div>
+            </div>
+            
+            <!-- Resumen de stock crítico -->
+            <div>
+              <div class="bg-red-50 rounded-lg p-4">
+                <h4 class="font-bold text-red-600 mb-3"><i class="fas fa-exclamation-triangle mr-2"></i>Stock Crítico</h4>
+                <div id="stock-critico-resumen" class="space-y-2 max-h-96 overflow-y-auto">
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Productos sugeridos para reposición -->
+          <div class="mt-6">
+            <h4 class="font-bold text-lg mb-3">Productos que necesitan reposición</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="productos-sugeridos">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mis Solicitudes Section -->
+      <div id="mis-solicitudes-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-6">Historial de Mis Solicitudes</h3>
+          
+          <!-- Filtros -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <select id="filtro-estado" class="border rounded-lg p-2" onchange="filtrarMisSolicitudes()">
+              <option value="todos">Todos los estados</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="aprobada">Aprobada</option>
+              <option value="rechazada">Rechazada</option>
+              <option value="en_compra">En compra</option>
+              <option value="recibida">Recibida</option>
+            </select>
+            <input type="date" id="filtro-fecha-inicio" class="border rounded-lg p-2" placeholder="Fecha inicio">
+            <input type="date" id="filtro-fecha-fin" class="border rounded-lg p-2" placeholder="Fecha fin">
+            <button onclick="filtrarMisSolicitudes()" class="bg-orange-600 text-white px-4 py-2 rounded-lg">Filtrar</button>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-2">ID</th>
+                  <th class="px-4 py-2">Producto</th>
+                  <th class="px-4 py-2">Cantidad</th>
+                  <th class="px-4 py-2">Urgencia</th>
+                  <th class="px-4 py-2">Estado</th>
+                  <th class="px-4 py-2">Fecha</th>
+                  <th class="px-4 py-2">Respuesta</th>
+                  <th class="px-4 py-2">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-mis-solicitudes"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ajuste Inventario -->
+<div id="modal-ajuste" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-white rounded-xl p-6 w-full max-w-md">
+    <h3 class="text-xl font-bold mb-4">Ajuste de Inventario</h3>
+    <div class="space-y-3">
+      <select id="ajuste-producto" class="w-full border rounded-lg p-2">
+        <option value="">Seleccione producto</option>
+      </select>
+      <input type="number" id="ajuste-cantidad" placeholder="Nueva Cantidad" class="w-full border rounded-lg p-2">
+      <textarea id="ajuste-motivo" placeholder="Motivo del ajuste" rows="3" class="w-full border rounded-lg p-2"></textarea>
+    </div>
+    <div class="flex justify-end space-x-3 mt-6">
+      <button onclick="cerrarModalAjuste()" class="px-4 py-2 border rounded-lg">Cancelar</button>
+      <button onclick="guardarAjuste()" class="px-4 py-2 bg-orange-600 text-white rounded-lg">Guardar Ajuste</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Proveedor -->
+<div id="modal-proveedor" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-white rounded-xl p-6 w-full max-w-md">
+    <h3 class="text-xl font-bold mb-4" id="modal-proveedor-title">Nuevo Proveedor</h3>
+    <input type="hidden" id="proveedor-id">
+    <div class="space-y-3">
+      <input type="text" id="proveedor-nombre" placeholder="Nombre del proveedor" class="w-full border rounded-lg p-2">
+      <input type="text" id="proveedor-contacto" placeholder="Persona de contacto" class="w-full border rounded-lg p-2">
+      <input type="tel" id="proveedor-telefono" placeholder="Teléfono" class="w-full border rounded-lg p-2">
+      <input type="email" id="proveedor-email" placeholder="Email" class="w-full border rounded-lg p-2">
+      <input type="text" id="proveedor-direccion" placeholder="Dirección" class="w-full border rounded-lg p-2">
+    </div>
+    <div class="flex justify-end space-x-3 mt-6">
+      <button onclick="cerrarModalProveedor()" class="px-4 py-2 border rounded-lg">Cancelar</button>
+      <button onclick="guardarProveedor()" class="px-4 py-2 bg-orange-600 text-white rounded-lg">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Datos iniciales con productos por defecto
+  let productos = JSON.parse(localStorage.getItem('productos')) || [
+    { id: 1, codigo: "P001", nombre: "Coca Cola 2L", precio: 12, costo: 8, stock: 50, stock_minimo: 10, stock_maximo: 200, categoria: "Bebidas", imagen: "https://images.unsplash.com/photo-1554866585-cd94860890b7?w=100&h=100&fit=crop" },
+    { id: 2, codigo: "P002", nombre: "Arroz 5kg", precio: 35, costo: 25, stock: 30, stock_minimo: 15, stock_maximo: 100, categoria: "Granos", imagen: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=100&h=100&fit=crop" },
+    { id: 3, codigo: "P003", nombre: "Aceite 1L", precio: 18, costo: 12, stock: 40, stock_minimo: 8, stock_maximo: 80, categoria: "Abarrotes", imagen: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=100&h=100&fit=crop" },
+    { id: 4, codigo: "P004", nombre: "Azúcar 1kg", precio: 8, costo: 5, stock: 60, stock_minimo: 10, stock_maximo: 150, categoria: "Abarrotes", imagen: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=100&h=100&fit=crop" },
+    { id: 5, codigo: "P005", nombre: "Leche 1L", precio: 7, costo: 4.5, stock: 25, stock_minimo: 8, stock_maximo: 80, categoria: "Lácteos", imagen: "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=100&h=100&fit=crop" }
+  ];
+
+  // Función para inicializar productos con valores por defecto
+  function inicializarProductosAlmacen() {
+    productos = productos.map(p => ({ 
+      ...p, 
+      stock_minimo: p.stock_minimo || p.stockMin || 10, 
+      stock_maximo: p.stock_maximo || p.stockMax || 100, 
+      costo: p.costo || (p.precio * 0.7), 
+      codigo: p.codigo || `PROD-${p.id.toString().padStart(4, '0')}` 
+    }));
+    localStorage.setItem('productos', JSON.stringify(productos));
+  }
+
+  inicializarProductosAlmacen();
+
+  let movimientos = JSON.parse(localStorage.getItem('movimientos')) || [];
+  let proveedores = JSON.parse(localStorage.getItem('proveedores')) || [];
+  let kardex = JSON.parse(localStorage.getItem('kardex')) || {};
+  let solicitudes = JSON.parse(localStorage.getItem('solicitudes_reposicion')) || [];
+
+  // Verificar autenticación
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  if (!currentUser || currentUser.role !== 'almacen') {
+    window.location.href = 'login.html';
+  }
+
+  document.getElementById('almacen-name').innerText = currentUser.name;
+
+  function initDashboard() {
+    actualizarStats();
+    cargarGraficoStock();
+    cargarUltimosMovimientos();
+    cargarSelectsProductos();
+    cargarTablaInventario();
+    cargarTablaProveedores();
+    cargarAlertas();
+  }
+
+  function actualizarStats() {
+    document.getElementById('total-productos').innerText = productos.length;
+    const bajo = productos.filter(p => p.stock <= p.stock_minimo).length;
+    const alto = productos.filter(p => p.stock >= p.stock_maximo).length;
+    document.getElementById('stock-bajo').innerText = bajo;
+    document.getElementById('stock-alto').innerText = alto;
+    const hoy = new Date().toISOString().split('T')[0];
+    const movHoy = movimientos.filter(m => m.fecha === hoy).length;
+    document.getElementById('movimientos-hoy').innerText = movHoy;
+  }
+
+  function cargarGraficoStock() {
+    const categorias = {};
+    productos.forEach(p => { categorias[p.categoria] = (categorias[p.categoria] || 0) + p.stock; });
+    const ctx = document.getElementById('stockChart').getContext('2d');
+    new Chart(ctx, { type: 'bar', data: { labels: Object.keys(categorias), datasets: [{ label: 'Stock Total', data: Object.values(categorias), backgroundColor: '#f97316' }] }, options: { responsive: true } });
+  }
+
+  function cargarUltimosMovimientos() {
+    const ultimos = movimientos.slice(-10).reverse();
+    const tbody = document.getElementById('ultimos-movimientos');
+    tbody.innerHTML = ultimos.map(m => `<tr class="border-b"><td class="px-4 py-2">${m.fecha}</td><td class="px-4 py-2">${m.producto}</td><td class="px-4 py-2"><span class="px-2 py-1 rounded text-xs ${m.tipo === 'entrada' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">${m.tipo}</span></td><td class="px-4 py-2">${m.cantidad}</td><td class="px-4 py-2">${m.usuario}</td></table>`).join('');
+  }
+
+  function cargarSelectsProductos() {
+    const options = productos.map(p => `<option value="${p.id}" data-stock="${p.stock}" data-costo="${p.costo}" data-precio="${p.precio}">${p.nombre} (Stock: ${p.stock})</option>`).join('');
+    document.getElementById('mov-producto').innerHTML = '<option value="">Seleccione un producto</option>' + options;
+    document.getElementById('ajuste-producto').innerHTML = '<option value="">Seleccione un producto</option>' + options;
+    document.getElementById('kardex-producto').innerHTML = '<option value="">Seleccione un producto</option>' + options;
+  }
+
+  function cargarDatosProducto() {
+    const select = document.getElementById('mov-producto');
+    const productoId = select.value;
+    if (productoId) {
+      const producto = productos.find(p => p.id == productoId);
+      document.getElementById('stock-actual').innerHTML = `<strong>Stock Actual:</strong> ${producto.stock} unidades<br><strong>Stock Mínimo:</strong> ${producto.stock_minimo}<br><strong>Stock Máximo:</strong> ${producto.stock_maximo}`;
+      document.getElementById('resumen-producto').innerHTML = `<div class="space-y-2"><p><strong>Producto:</strong> ${producto.nombre}</p><p><strong>Código:</strong> ${producto.codigo || 'N/A'}</p><p><strong>Costo:</strong> Bs. ${producto.costo}</p><p><strong>Precio Venta:</strong> Bs. ${producto.precio}</p><p><strong>Margen:</strong> ${(((producto.precio - producto.costo) / producto.costo) * 100).toFixed(1)}%</p></div>`;
+    } else {
+      document.getElementById('stock-actual').innerHTML = '';
+      document.getElementById('resumen-producto').innerHTML = '<p class="text-gray-500">Seleccione un producto para ver detalles</p>';
+    }
+  }
+
+  function validarStock() {
+    const select = document.getElementById('mov-producto');
+    const tipo = document.getElementById('mov-tipo').value;
+    const cantidad = parseInt(document.getElementById('mov-cantidad').value);
+    if (select.value && tipo === 'salida') {
+      const stockActual = parseInt(select.options[select.selectedIndex].dataset.stock);
+      if (cantidad > stockActual) {
+        alert(`⚠️ No hay suficiente stock. Stock actual: ${stockActual} unidades`);
+        document.getElementById('mov-cantidad').value = stockActual;
+      }
+    }
+  }
+
+  function registrarMovimiento() {
+    const productoId = document.getElementById('mov-producto').value;
+    const tipo = document.getElementById('mov-tipo').value;
+    const cantidad = parseInt(document.getElementById('mov-cantidad').value);
+    const motivo = document.getElementById('mov-motivo').value;
+
+    if (!productoId || !cantidad) { alert('Complete todos los campos'); return; }
+
+    const producto = productos.find(p => p.id == productoId);
+    const stockActual = producto.stock;
+    let nuevoStock = stockActual;
+
+    if (tipo === 'entrada') nuevoStock = stockActual + cantidad;
+    else if (tipo === 'salida') { if (cantidad > stockActual) { alert('Stock insuficiente'); return; } nuevoStock = stockActual - cantidad; }
+    else if (tipo === 'ajuste') nuevoStock = cantidad;
+
+    // Registrar movimiento
+    const movimiento = {
+      id: movimientos.length + 1,
+      producto_id: productoId,
+      producto: producto.nombre,
+      tipo: tipo,
+      cantidad: cantidad,
+      stock_anterior: stockActual,
+      stock_nuevo: nuevoStock,
+      motivo: motivo || (tipo === 'entrada' ? 'Compra a proveedor' : tipo === 'salida' ? 'Venta' : 'Ajuste manual'),
+      usuario: currentUser.name,
+      fecha: new Date().toISOString().split('T')[0],
+      hora: new Date().toLocaleTimeString()
+    };
+    movimientos.push(movimiento);
+    localStorage.setItem('movimientos', JSON.stringify(movimientos));
+
+    // Actualizar stock del producto
+    producto.stock = nuevoStock;
+    localStorage.setItem('productos', JSON.stringify(productos));
+
+    // Actualizar Kardex
+    if (!kardex[productoId]) kardex[productoId] = [];
+    let saldoAnterior = kardex[productoId].length > 0 ? kardex[productoId][kardex[productoId].length - 1].saldo : 0;
+    let entrada = tipo === 'entrada' ? cantidad : 0;
+    let salida = tipo === 'salida' ? cantidad : 0;
+    let saldo = saldoAnterior + entrada - salida;
+    
+    kardex[productoId].push({
+      fecha: movimiento.fecha,
+      tipo: tipo,
+      entrada: entrada,
+      salida: salida,
+      saldo: saldo,
+      motivo: movimiento.motivo,
+      usuario: currentUser.name
+    });
+    localStorage.setItem('kardex', JSON.stringify(kardex));
+
+    alert('Movimiento registrado exitosamente');
+    document.getElementById('mov-producto').value = '';
+    document.getElementById('mov-cantidad').value = '';
+    document.getElementById('mov-motivo').value = '';
+    actualizarStats();
+    cargarUltimosMovimientos();
+    cargarTablaInventario();
+    cargarAlertas();
+  }
+
+  function cargarTablaInventario() {
+    const tbody = document.getElementById('tabla-inventario');
+    tbody.innerHTML = productos.map(p => {
+      let stockClass = '';
+      if (p.stock <= p.stock_minimo) stockClass = 'text-red-600 font-bold';
+      else if (p.stock >= p.stock_maximo) stockClass = 'text-yellow-600 font-bold';
+      return `<tr class="border-b"><td class="px-4 py-2"><img src="${p.imagen || 'https://via.placeholder.com/50'}" class="product-image"></td><td class="px-4 py-2">${p.codigo || 'N/A'}</td><td class="px-4 py-2">${p.nombre}</td><td class="px-4 py-2">${p.categoria}</td><td class="px-4 py-2 ${stockClass}">${p.stock}</td><td class="px-4 py-2">${p.stock_minimo}</td><td class="px-4 py-2">${p.stock_maximo}</td><td class="px-4 py-2"><button onclick="window.location.href='dashboard-admin.html?edit=${p.id}'" class="text-blue-600"><i class="fas fa-edit"></i></button></td></tr>`;
+    }).join('');
+  }
+
+  function cargarKardex() {
+    const productoId = document.getElementById('kardex-producto').value;
+    if (!productoId) return;
+    
+    const producto = productos.find(p => p.id == productoId);
+    const movsProducto = kardex[productoId] || [];
+    
+    document.getElementById('kardex-info').classList.remove('hidden');
+    document.getElementById('kardex-stock').innerText = producto.stock;
+    document.getElementById('kardex-min').innerText = producto.stock_minimo;
+    document.getElementById('kardex-max').innerText = producto.stock_maximo;
+    document.getElementById('kardex-valor').innerText = `Bs. ${(producto.stock * producto.costo).toFixed(2)}`;
+    
+    const tbody = document.getElementById('tabla-kardex');
+    tbody.innerHTML = movsProducto.map(m => `<tr class="border-b"><td class="px-4 py-2">${m.fecha}</td><td class="px-4 py-2">${m.tipo}</td><td class="px-4 py-2 text-green-600">${m.entrada || 0}</td><td class="px-4 py-2 text-red-600">${m.salida || 0}</td><td class="px-4 py-2 font-bold">${m.saldo}</td><td class="px-4 py-2">${m.motivo}</td><td class="px-4 py-2">${m.usuario}</td></tr>`).join('');
+    if (movsProducto.length === 0) tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No hay movimientos registrados</td></tr>';
+  }
+
+  function cargarAlertas() {
+    const bajos = productos.filter(p => p.stock <= p.stock_minimo);
+    const altos = productos.filter(p => p.stock >= p.stock_maximo);
+    
+    document.getElementById('alertas-stock-bajo').innerHTML = bajos.map(p => `<div class="flex items-center justify-between bg-red-50 p-3 rounded-lg"><div><p class="font-semibold">${p.nombre}</p><p class="text-sm">Stock: ${p.stock} / Mínimo: ${p.stock_minimo}</p></div><button onclick="abrirModalReposicion(${p.id})" class="bg-red-600 text-white px-3 py-1 rounded">Reponer</button></div>`).join('') || '<p class="text-green-600">✓ No hay productos con stock bajo</p>';
+    
+    document.getElementById('alertas-stock-alto').innerHTML = altos.map(p => `<div class="flex items-center justify-between bg-yellow-50 p-3 rounded-lg"><div><p class="font-semibold">${p.nombre}</p><p class="text-sm">Stock: ${p.stock} / Máximo: ${p.stock_maximo}</p></div><button onclick="abrirModalAjusteStock(${p.id})" class="bg-yellow-600 text-white px-3 py-1 rounded">Ajustar</button></div>`).join('') || '<p class="text-green-600">✓ No hay productos con stock excedido</p>';
+  }
+
+  function cargarTablaProveedores() {
+    const tbody = document.getElementById('tabla-proveedores');
+    tbody.innerHTML = proveedores.map(p => `<tr class="border-b"><td class="px-4 py-2">${p.id}</td><td class="px-4 py-2">${p.nombre}</td><td class="px-4 py-2">${p.contacto}</td><td class="px-4 py-2">${p.telefono}</td><td class="px-4 py-2">${p.email}</td><td class="px-4 py-2">${p.direccion}</td><td class="px-4 py-2"><button onclick="eliminarProveedor(${p.id})" class="text-red-600"><i class="fas fa-trash"></i></button></td></tr>`).join('');
+  }
+
+  let currentProveedorId = null;
+  function abrirModalProveedor(id = null) {
+    if (id) { const p = proveedores.find(pr => pr.id === id); if (p) { document.getElementById('modal-proveedor-title').innerText = 'Editar Proveedor'; document.getElementById('proveedor-id').value = p.id; document.getElementById('proveedor-nombre').value = p.nombre; document.getElementById('proveedor-contacto').value = p.contacto; document.getElementById('proveedor-telefono').value = p.telefono; document.getElementById('proveedor-email').value = p.email; document.getElementById('proveedor-direccion').value = p.direccion; currentProveedorId = id; } }
+    else { document.getElementById('modal-proveedor-title').innerText = 'Nuevo Proveedor'; document.getElementById('proveedor-id').value = ''; document.getElementById('proveedor-nombre').value = ''; document.getElementById('proveedor-contacto').value = ''; document.getElementById('proveedor-telefono').value = ''; document.getElementById('proveedor-email').value = ''; document.getElementById('proveedor-direccion').value = ''; currentProveedorId = null; }
+    document.getElementById('modal-proveedor').classList.remove('hidden'); document.getElementById('modal-proveedor').classList.add('flex');
+  }
+
+  function cerrarModalProveedor() { document.getElementById('modal-proveedor').classList.add('hidden'); document.getElementById('modal-proveedor').classList.remove('flex'); }
+
+  function guardarProveedor() {
+    const nombre = document.getElementById('proveedor-nombre').value;
+    const contacto = document.getElementById('proveedor-contacto').value;
+    const telefono = document.getElementById('proveedor-telefono').value;
+    const email = document.getElementById('proveedor-email').value;
+    const direccion = document.getElementById('proveedor-direccion').value;
+    if (!nombre) { alert('Ingrese el nombre del proveedor'); return; }
+    if (currentProveedorId) { const index = proveedores.findIndex(p => p.id === currentProveedorId); proveedores[index] = { ...proveedores[index], nombre, contacto, telefono, email, direccion }; }
+    else { const newId = Math.max(...proveedores.map(p => p.id), 0) + 1; proveedores.push({ id: newId, nombre, contacto, telefono, email, direccion }); }
+    localStorage.setItem('proveedores', JSON.stringify(proveedores));
+    cerrarModalProveedor(); cargarTablaProveedores();
+  }
+
+  function eliminarProveedor(id) { if (confirm('¿Eliminar este proveedor?')) { proveedores = proveedores.filter(p => p.id !== id); localStorage.setItem('proveedores', JSON.stringify(proveedores)); cargarTablaProveedores(); } }
+
+  function abrirModalAjuste() { document.getElementById('modal-ajuste').classList.remove('hidden'); document.getElementById('modal-ajuste').classList.add('flex'); }
+  function cerrarModalAjuste() { document.getElementById('modal-ajuste').classList.add('hidden'); document.getElementById('modal-ajuste').classList.remove('flex'); }
+
+  function guardarAjuste() {
+    const productoId = document.getElementById('ajuste-producto').value;
+    const nuevaCantidad = parseInt(document.getElementById('ajuste-cantidad').value);
+    const motivo = document.getElementById('ajuste-motivo').value;
+    if (!productoId || !nuevaCantidad) { alert('Complete los campos'); return; }
+    const producto = productos.find(p => p.id == productoId);
+    const cantidadAjuste = Math.abs(producto.stock - nuevaCantidad);
+    const tipo = nuevaCantidad > producto.stock ? 'entrada' : 'salida';
+    const movimiento = { id: movimientos.length + 1, producto_id: productoId, producto: producto.nombre, tipo: tipo, cantidad: cantidadAjuste, stock_anterior: producto.stock, stock_nuevo: nuevaCantidad, motivo: motivo || 'Ajuste manual', usuario: currentUser.name, fecha: new Date().toISOString().split('T')[0], hora: new Date().toLocaleTimeString() };
+    movimientos.push(movimiento);
+    localStorage.setItem('movimientos', JSON.stringify(movimientos));
+    producto.stock = nuevaCantidad;
+    localStorage.setItem('productos', JSON.stringify(productos));
+    cerrarModalAjuste();
+    actualizarStats(); cargarUltimosMovimientos(); cargarTablaInventario(); cargarAlertas();
+    alert('Ajuste realizado exitosamente');
+  }
+
+  function abrirModalReposicion(id) { const producto = productos.find(p => p.id === id); document.getElementById('ajuste-producto').value = id; document.getElementById('ajuste-cantidad').value = producto.stock_minimo * 2; document.getElementById('ajuste-motivo').value = 'Reposición por stock bajo'; document.getElementById('modal-ajuste').classList.remove('hidden'); document.getElementById('modal-ajuste').classList.add('flex'); }
+  function abrirModalAjusteStock(id) { const producto = productos.find(p => p.id === id); document.getElementById('ajuste-producto').value = id; document.getElementById('ajuste-cantidad').value = producto.stock_maximo; document.getElementById('ajuste-motivo').value = 'Ajuste por exceso de stock'; document.getElementById('modal-ajuste').classList.remove('hidden'); document.getElementById('modal-ajuste').classList.add('flex'); }
+
+  // ==================== SOLICITUDES DE REPOSICIÓN ====================
+
+  function cargarSelectProductosSolicitud() {
+    const select = document.getElementById('solicitud-producto');
+    select.innerHTML = '<option value="">Seleccione un producto</option>' + 
+      productos.map(p => `<option value="${p.id}" data-stock="${p.stock}" data-min="${p.stock_minimo}">${p.nombre} - Stock: ${p.stock} (Mín: ${p.stock_minimo})</option>`).join('');
+  }
+
+  function cargarInfoProductoSolicitud() {
+    const select = document.getElementById('solicitud-producto');
+    const productoId = select.value;
+    if (productoId) {
+      const producto = productos.find(p => p.id == productoId);
+      const cantidadSugerida = (producto.stock_minimo * 2) - producto.stock;
+      if (cantidadSugerida > 0) {
+        document.getElementById('solicitud-cantidad').value = cantidadSugerida;
+        document.getElementById('solicitud-observaciones').value = `Stock actual: ${producto.stock} (Mínimo: ${producto.stock_minimo}). Se sugiere reponer ${cantidadSugerida} unidades.`;
+      }
+    }
+  }
+
+  function crearSolicitud() {
+    const productoId = document.getElementById('solicitud-producto').value;
+    const cantidad = parseInt(document.getElementById('solicitud-cantidad').value);
+    const motivo = document.getElementById('solicitud-motivo').value;
+    const observaciones = document.getElementById('solicitud-observaciones').value;
+    const urgencia = document.getElementById('solicitud-urgencia').value;
+
+    if (!productoId || !cantidad || cantidad <= 0) {
+      alert('Seleccione un producto y cantidad válida');
+      return;
+    }
+
+    const producto = productos.find(p => p.id == productoId);
+    
+    const nuevaSolicitud = {
+      id: solicitudes.length + 1,
+      producto_id: parseInt(productoId),
+      producto_nombre: producto.nombre,
+      cantidad: cantidad,
+      stock_actual: producto.stock,
+      stock_minimo: producto.stock_minimo,
+      motivo: motivo,
+      observaciones: observaciones,
+      urgencia: urgencia,
+      estado: 'pendiente',
+      solicitante: currentUser.name,
+      fecha_solicitud: new Date().toISOString()
+    };
+
+    solicitudes.push(nuevaSolicitud);
+    localStorage.setItem('solicitudes_reposicion', JSON.stringify(solicitudes));
+
+    alert('✅ Solicitud enviada correctamente al Administrador');
+    
+    // Limpiar formulario
+    document.getElementById('solicitud-producto').value = '';
+    document.getElementById('solicitud-cantidad').value = '';
+    document.getElementById('solicitud-observaciones').value = '';
+    
+    cargarMisSolicitudes();
+    cargarProductosSugeridos();
+  }
+
+  function cargarMisSolicitudes() {
+    const filtroEstado = document.getElementById('filtro-estado')?.value || 'todos';
+    const fechaInicio = document.getElementById('filtro-fecha-inicio')?.value;
+    const fechaFin = document.getElementById('filtro-fecha-fin')?.value;
+    
+    let misSolicitudes = solicitudes.filter(s => s.solicitante === currentUser.name);
+    
+    if (filtroEstado !== 'todos') misSolicitudes = misSolicitudes.filter(s => s.estado === filtroEstado);
+    if (fechaInicio) misSolicitudes = misSolicitudes.filter(s => s.fecha_solicitud.split('T')[0] >= fechaInicio);
+    if (fechaFin) misSolicitudes = misSolicitudes.filter(s => s.fecha_solicitud.split('T')[0] <= fechaFin);
+    
+    const tbody = document.getElementById('tabla-mis-solicitudes');
+    const estadoColor = { pendiente: 'bg-yellow-100 text-yellow-600', aprobada: 'bg-green-100 text-green-600', rechazada: 'bg-red-100 text-red-600', en_compra: 'bg-blue-100 text-blue-600', recibida: 'bg-purple-100 text-purple-600' };
+    const urgenciaIcono = { baja: '🟢', media: '🟡', alta: '🔴', critica: '⚫' };
+    
+    tbody.innerHTML = misSolicitudes.map(s => `
+      <tr class="border-b">
+        <td class="px-4 py-2">${s.id}</td>
+        <td class="px-4 py-2">${s.producto_nombre}</td>
+        <td class="px-4 py-2">${s.cantidad}</td>
+        <td class="px-4 py-2">${urgenciaIcono[s.urgencia]} ${s.urgencia}</td>
+        <td class="px-4 py-2"><span class="px-2 py-1 rounded text-xs ${estadoColor[s.estado]}">${s.estado}</span></td>
+        <td class="px-4 py-2">${new Date(s.fecha_solicitud).toLocaleDateString()}</td>
+        <td class="px-4 py-2">${s.fecha_respuesta ? new Date(s.fecha_respuesta).toLocaleDateString() : '-'}</td>
+        <td class="px-4 py-2">
+          <button onclick="verDetalleSolicitudAlmacen(${s.id})" class="text-blue-600"><i class="fas fa-eye"></i></button>
+          ${s.estado === 'pendiente' ? `<button onclick="cancelarSolicitud(${s.id})" class="text-red-600 ml-2"><i class="fas fa-times"></i></button>` : ''}
+        </td>
+      </tr>
+    `).join('');
+    if (misSolicitudes.length === 0) tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">No hay solicitudes registradas</td><tr>';
+  }
+
+  function filtrarMisSolicitudes() { cargarMisSolicitudes(); }
+
+  function verDetalleSolicitudAlmacen(id) {
+    const solicitud = solicitudes.find(s => s.id === id);
+    alert(`📋 DETALLE DE SOLICITUD #${solicitud.id}\n\nProducto: ${solicitud.producto_nombre}\nCantidad: ${solicitud.cantidad}\nUrgencia: ${solicitud.urgencia}\nEstado: ${solicitud.estado}\nMotivo: ${solicitud.motivo}\nObservaciones: ${solicitud.observaciones || 'Ninguna'}\nFecha: ${new Date(solicitud.fecha_solicitud).toLocaleString()}\n\n${solicitud.fecha_respuesta ? `Respuesta: ${new Date(solicitud.fecha_respuesta).toLocaleString()}\nResponsable: ${solicitud.responsable || 'N/A'}` : 'Sin respuesta aún'}`);
+  }
+
+  function cancelarSolicitud(id) {
+    if (confirm('¿Está seguro de cancelar esta solicitud?')) {
+      solicitudes = solicitudes.filter(s => s.id !== id);
+      localStorage.setItem('solicitudes_reposicion', JSON.stringify(solicitudes));
+      cargarMisSolicitudes();
+      alert('Solicitud cancelada');
+    }
+  }
+
+  function cargarStockCritico() {
+    const criticos = productos.filter(p => p.stock <= p.stock_minimo);
+    const container = document.getElementById('stock-critico-resumen');
+    container.innerHTML = criticos.map(p => `
+      <div class="bg-white rounded p-2 flex justify-between items-center">
+        <div><span class="font-semibold">${p.nombre}</span><br><span class="text-sm">Stock: ${p.stock} / Mín: ${p.stock_minimo}</span></div>
+        <button onclick="solicitarProductoDirecto(${p.id})" class="bg-orange-600 text-white px-2 py-1 rounded text-sm">Solicitar</button>
+      </div>
+    `).join('');
+    if (criticos.length === 0) container.innerHTML = '<p class="text-green-600">✓ No hay productos con stock crítico</p>';
+  }
+
+  function solicitarProductoDirecto(id) {
+    const producto = productos.find(p => p.id === id);
+    document.getElementById('solicitud-producto').value = id;
+    cargarInfoProductoSolicitud();
+    document.getElementById('solicitud-urgencia').value = 'critica';
+    document.getElementById('solicitud-motivo').value = 'stock_bajo';
+    showSection('solicitudes');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cargarProductosSugeridos() {
+    const sugeridos = productos.filter(p => p.stock <= p.stock_minimo * 1.5);
+    const container = document.getElementById('productos-sugeridos');
+    container.innerHTML = sugeridos.map(p => `
+      <div class="border rounded-lg p-3 flex justify-between items-center">
+        <div><span class="font-semibold">${p.nombre}</span><br><span class="text-sm">Stock: ${p.stock} / Mín: ${p.stock_minimo}</span></div>
+        <button onclick="solicitarProductoDirecto(${p.id})" class="bg-orange-600 text-white px-3 py-1 rounded text-sm">Solicitar</button>
+      </div>
+    `).join('');
+    if (sugeridos.length === 0) container.innerHTML = '<p class="text-green-600">✓ Todos los productos tienen stock adecuado</p>';
+  }
+
+  // Función showSection actualizada
+  function showSection(section) {
+    const sections = ['dashboard', 'inventario', 'movimientos', 'kardex', 'alertas', 'proveedores', 'solicitudes', 'mis-solicitudes'];
+    sections.forEach(s => {
+      const el = document.getElementById(`${s}-section`);
+      if (el) el.classList.add('hidden');
+    });
+    const activeSection = document.getElementById(`${section}-section`);
+    if (activeSection) activeSection.classList.remove('hidden');
+    
+    const titles = { dashboard: 'Dashboard Almacén', inventario: 'Gestión de Inventario', movimientos: 'Registrar Movimientos', kardex: 'Kardex de Productos', alertas: 'Alertas de Inventario', proveedores: 'Gestión de Proveedores', solicitudes: 'Solicitar Productos', 'mis-solicitudes': 'Mis Solicitudes' };
+    document.getElementById('section-title').innerText = titles[section] || 'Dashboard Almacén';
+    
+    // Cargar datos específicos según la sección
+    if (section === 'kardex') cargarKardex();
+    if (section === 'alertas') cargarAlertas();
+    if (section === 'solicitudes') {
+      cargarSelectProductosSolicitud();
+      cargarStockCritico();
+      cargarProductosSugeridos();
+    }
+    if (section === 'mis-solicitudes') cargarMisSolicitudes();
+  }
+
+  // Inicializar todo
+  initDashboard();
+  cargarSelectProductosSolicitud();
+  cargarStockCritico();
+  cargarProductosSugeridos();
+  cargarMisSolicitudes();
+</script>
+</body>
+</html>

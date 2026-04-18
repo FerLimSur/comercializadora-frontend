@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de Compras - Proveedores</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+<div class="container mx-auto px-6 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">Gestión de Compras a Proveedores</h1>
+    <a href="dashboard-admin.html" class="bg-gray-600 text-white px-4 py-2 rounded-lg">← Volver al Panel</a>
+  </div>
+
+  <!-- Órdenes Pendientes de Compra -->
+  <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+    <h2 class="text-xl font-bold mb-4">📦 Órdenes de Compra Pendientes</h2>
+    <div id="ordenes-pendientes" class="space-y-4"></div>
+  </div>
+
+  <!-- Historial de Compras -->
+  <div class="bg-white rounded-xl shadow-md p-6">
+    <h2 class="text-xl font-bold mb-4">📋 Historial de Compras</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr><th class="px-4 py-2">ID</th><th class="px-4 py-2">Proveedor</th><th class="px-4 py-2">Producto</th><th class="px-4 py-2">Cantidad</th><th class="px-4 py-2">Total</th><th class="px-4 py-2">Fecha</th><th class="px-4 py-2">Estado</th><th class="px-4 py-2">Acciones</th></tr>
+        </thead>
+        <tbody id="tabla-compras"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para recibir mercadería -->
+<div id="modal-recibir" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-white rounded-xl p-6 w-full max-w-md">
+    <h3 class="text-xl font-bold mb-4">Recibir Mercadería</h3>
+    <div class="space-y-3">
+      <p id="recibir-info" class="text-gray-600"></p>
+      <label class="block text-sm font-medium">Número de Factura</label>
+      <input type="text" id="recibir-factura" class="w-full border rounded-lg p-2">
+      <label class="block text-sm font-medium">Observaciones</label>
+      <textarea id="recibir-obs" rows="2" class="w-full border rounded-lg p-2"></textarea>
+    </div>
+    <div class="flex justify-end space-x-3 mt-6">
+      <button onclick="cerrarModalRecibir()" class="px-4 py-2 border rounded-lg">Cancelar</button>
+      <button onclick="confirmarRecepcion()" class="px-4 py-2 bg-green-600 text-white rounded-lg">Confirmar Recepción</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let comprasPendientes = JSON.parse(localStorage.getItem('compras_pendientes')) || [];
+  let comprasRealizadas = JSON.parse(localStorage.getItem('compras_realizadas')) || [];
+  let productos = JSON.parse(localStorage.getItem('productos')) || [];
+  let proveedores = JSON.parse(localStorage.getItem('proveedores')) || [];
+  let solicitudes = JSON.parse(localStorage.getItem('solicitudes_reposicion')) || [];
+  let currentRecepcionId = null;
+
+  function cargarOrdenesPendientes() {
+    const container = document.getElementById('ordenes-pendientes');
+    const pendientes = comprasPendientes.filter(c => c.estado === 'pendiente_compra');
+    
+    if(pendientes.length === 0){
+      container.innerHTML = '<div class="text-center py-8 text-gray-500">No hay órdenes de compra pendientes</div>';
+      return;
+    }
+    
+    container.innerHTML = pendientes.map(compra => `
+      <div class="border rounded-lg p-4">
+        <div class="flex justify-between items-start">
+          <div>
+            <h4 class="font-bold text-lg">${compra.producto_nombre}</h4>
+            <p class="text-gray-600">Cantidad: <strong>${compra.cantidad}</strong> unidades</p>
+            <p class="text-gray-600">Solicitado por: ${compra.solicitante}</p>
+            <p class="text-gray-500 text-sm">Fecha: ${new Date(compra.fecha_solicitud).toLocaleString()}</p>
+          </div>
+          <div class="flex space-x-2">
+            <button onclick="abrirModalRecibir(${compra.id})" class="bg-green-600 text-white px-4 py-2 rounded-lg">
+              <i class="fas fa-check mr-2"></i>Recibir Mercadería
+            </button>
+            <button onclick="cancelarOrden(${compra.id})" class="bg-red-600 text-white px-4 py-2 rounded-lg">
+              <i class="fas fa-times mr-2"></i>Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function abrirModalRecibir(id) {
+    const compra = comprasPendientes.find(c => c.id === id);
+    if(compra){
+      currentRecepcionId = id;
+      document.getElementById('recibir-info').innerHTML = `Producto: ${compra.producto_nombre}<br>Cantidad: ${compra.cantidad} unidades`;
+      document.getElementById('recibir-factura').value = '';
+      document.getElementById('recibir-obs').value = '';
+      document.getElementById('modal-recibir').classList.remove('hidden');
+      document.getElementById('modal-recibir').classList.add('flex');
+    }
+  }
+
+  function cerrarModalRecibir() {
+    document.getElementById('modal-recibir').classList.add('hidden');
+    document.getElementById('modal-recibir').classList.remove('flex');
+    currentRecepcionId = null;
+  }
+
+  function confirmarRecepcion() {
+    const factura = document.getElementById('recibir-factura').value;
+    const observaciones = document.getElementById('recibir-obs').value;
+    
+    if(!factura){
+      alert('Ingrese el número de factura');
+      return;
+    }
+    
+    const compraIndex = comprasPendientes.findIndex(c => c.id === currentRecepcionId);
+    if(compraIndex !== -1){
+      const compra = comprasPendientes[compraIndex];
+      
+      // Actualizar stock del producto
+      const producto = productos.find(p => p.id === compra.producto_id);
+      if(producto){
+        producto.stock += compra.cantidad;
+        localStorage.setItem('productos', JSON.stringify(productos));
+      }
+      
+      // Mover a compras realizadas
+      const compraRealizada = {
+        ...compra,
+        estado: 'completada',
+        factura: factura,
+        observaciones: observaciones,
+        fecha_recepcion: new Date().toISOString(),
+        recibido_por: JSON.parse(localStorage.getItem('currentUser'))?.name || 'Admin'
+      };
+      comprasRealizadas.push(compraRealizada);
+      
+      // Eliminar de pendientes
+      comprasPendientes.splice(compraIndex, 1);
+      
+      // Actualizar solicitud original
+      const solicitud = solicitudes.find(s => s.id === compra.solicitud_id);
+      if(solicitud){
+        solicitud.estado = 'recibida';
+        solicitud.fecha_recepcion = new Date().toISOString();
+      }
+      
+      // Guardar todo
+      localStorage.setItem('compras_pendientes', JSON.stringify(comprasPendientes));
+      localStorage.setItem('compras_realizadas', JSON.stringify(comprasRealizadas));
+      localStorage.setItem('solicitudes_reposicion', JSON.stringify(solicitudes));
+      
+      // Registrar movimiento en kardex
+      let movimientos = JSON.parse(localStorage.getItem('movimientos')) || [];
+      let kardex = JSON.parse(localStorage.getItem('kardex')) || {};
+      
+      const movimiento = {
+        id: movimientos.length + 1,
+        producto_id: compra.producto_id,
+        producto: compra.producto_nombre,
+        tipo: 'entrada',
+        cantidad: compra.cantidad,
+        stock_anterior: producto.stock - compra.cantidad,
+        stock_nuevo: producto.stock,
+        motivo: `Compra a proveedor - Factura: ${factura}`,
+        usuario: 'Admin',
+        fecha: new Date().toISOString().split('T')[0],
+        hora: new Date().toLocaleTimeString()
+      };
+      movimientos.push(movimiento);
+      localStorage.setItem('movimientos', JSON.stringify(movimientos));
+      
+      if(!kardex[compra.producto_id]) kardex[compra.producto_id] = [];
+      kardex[compra.producto_id].push({
+        fecha: movimiento.fecha,
+        tipo: 'entrada',
+        entrada: compra.cantidad,
+        salida: 0,
+        saldo: producto.stock,
+        motivo: movimiento.motivo,
+        usuario: movimiento.usuario
+      });
+      localStorage.setItem('kardex', JSON.stringify(kardex));
+      
+      // Imprimir factura de compra
+      imprimirFacturaCompra(compraRealizada);
+      
+      alert('✅ Mercadería recibida correctamente. Stock actualizado.');
+      cerrarModalRecibir();
+      cargarOrdenesPendientes();
+      cargarHistorialCompras();
+    }
+  }
+
+  // Función para imprimir factura de compra
+  function imprimirFacturaCompra(compra) {
+    // Obtener el proveedor asociado (si existe en la compra)
+    let proveedorNombre = compra.proveedor_nombre || 'Proveedor';
+    let proveedorNit = compra.proveedor_nit || 'No registrado';
+    
+    // Buscar proveedor si no vino en la compra
+    if (!compra.proveedor_nombre) {
+      // Intentar encontrar proveedor por producto o usar default
+      const proveedorEncontrado = proveedores.find(p => p.id === compra.proveedor_id);
+      if (proveedorEncontrado) {
+        proveedorNombre = proveedorEncontrado.nombre;
+        proveedorNit = proveedorEncontrado.nit || proveedorEncontrado.email || 'No registrado';
+      }
+    }
+    
+    const facturaData = {
+      proveedor: proveedorNombre,
+      proveedor_nit: proveedorNit,
+      factura_numero: compra.factura,
+      productos: [{
+        nombre: compra.producto_nombre,
+        cantidad: compra.cantidad,
+        costo: productos.find(p => p.id === compra.producto_id)?.costo || 0
+      }],
+      total: compra.cantidad * (productos.find(p => p.id === compra.producto_id)?.costo || 0),
+      fecha: new Date().toLocaleDateString(),
+      recibido_por: compra.recibido_por || 'Admin'
+    };
+    
+    localStorage.setItem('factura_compra_actual', JSON.stringify(facturaData));
+    window.open('factura-compra.html', '_blank', 'width=800,height=900');
+  }
+
+  function cancelarOrden(id) {
+    if(confirm('¿Cancelar esta orden de compra?')){
+      const compraIndex = comprasPendientes.findIndex(c => c.id === id);
+      if(compraIndex !== -1){
+        const compra = comprasPendientes[compraIndex];
+        comprasPendientes.splice(compraIndex, 1);
+        
+        // Actualizar solicitud como rechazada
+        const solicitud = solicitudes.find(s => s.id === compra.solicitud_id);
+        if(solicitud){
+          solicitud.estado = 'rechazada';
+          solicitud.motivo_rechazo = 'Orden de compra cancelada por administrador';
+        }
+        
+        localStorage.setItem('compras_pendientes', JSON.stringify(comprasPendientes));
+        localStorage.setItem('solicitudes_reposicion', JSON.stringify(solicitudes));
+        
+        alert('Orden cancelada');
+        cargarOrdenesPendientes();
+        cargarHistorialCompras();
+      }
+    }
+  }
+
+  function cargarHistorialCompras() {
+    const tbody = document.getElementById('tabla-compras');
+    tbody.innerHTML = comprasRealizadas.map(c => `
+      <tr class="border-b">
+        <td class="px-4 py-2">${c.id}</td>
+        <td class="px-4 py-2">${c.proveedor_nombre || 'Proveedor'}</td>
+        <td class="px-4 py-2">${c.producto_nombre}</td>
+        <td class="px-4 py-2">${c.cantidad}</td>
+        <td class="px-4 py-2">Bs. ${(c.cantidad * (productos.find(p=>p.id===c.producto_id)?.costo || 0)).toFixed(2)}</td>
+        <td class="px-4 py-2">${new Date(c.fecha_recepcion).toLocaleDateString()}</td>
+        <td class="px-4 py-2"><span class="px-2 py-1 rounded text-xs bg-green-100 text-green-600">Completada</span></td>
+        <td class="px-4 py-2">
+          <button onclick="verDetalleCompra(${c.id})" class="text-blue-600 mr-2"><i class="fas fa-eye"></i></button>
+          <button onclick="reimprimirFacturaCompra(${c.id})" class="text-purple-600"><i class="fas fa-print"></i></button>
+        </td>
+      </tr>
+    `).join('');
+    if(comprasRealizadas.length === 0) tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">No hay compras registradas</td></tr>';
+  }
+
+  function verDetalleCompra(id) {
+    const compra = comprasRealizadas.find(c => c.id === id);
+    const producto = productos.find(p => p.id === compra.producto_id);
+    const costoUnitario = producto?.costo || 0;
+    alert(`📋 DETALLE DE COMPRA #${compra.id}\n\nProducto: ${compra.producto_nombre}\nCantidad: ${compra.cantidad}\nCosto Unitario: Bs. ${costoUnitario.toFixed(2)}\nTotal: Bs. ${(compra.cantidad * costoUnitario).toFixed(2)}\nFactura: ${compra.factura}\nFecha Recepción: ${new Date(compra.fecha_recepcion).toLocaleString()}\nRecibido por: ${compra.recibido_por}\nObservaciones: ${compra.observaciones || 'Ninguna'}`);
+  }
+
+  // Función para reimprimir factura de compra desde el historial
+  function reimprimirFacturaCompra(id) {
+    const compra = comprasRealizadas.find(c => c.id === id);
+    if (!compra) {
+      alert('No se encontró la compra');
+      return;
+    }
+    
+    // Buscar proveedor
+    let proveedorNombre = compra.proveedor_nombre || 'Proveedor';
+    let proveedorNit = compra.proveedor_nit || 'No registrado';
+    
+    const facturaData = {
+      proveedor: proveedorNombre,
+      proveedor_nit: proveedorNit,
+      factura_numero: compra.factura,
+      productos: [{
+        nombre: compra.producto_nombre,
+        cantidad: compra.cantidad,
+        costo: productos.find(p => p.id === compra.producto_id)?.costo || 0
+      }],
+      total: compra.cantidad * (productos.find(p => p.id === compra.producto_id)?.costo || 0),
+      fecha: new Date(compra.fecha_recepcion).toLocaleDateString(),
+      recibido_por: compra.recibido_por || 'Admin'
+    };
+    
+    localStorage.setItem('factura_compra_actual', JSON.stringify(facturaData));
+    window.open('factura-compra.html', '_blank', 'width=800,height=900');
+  }
+
+  // Inicializar
+  cargarOrdenesPendientes();
+  cargarHistorialCompras();
+</script>
+</body>
+</html>

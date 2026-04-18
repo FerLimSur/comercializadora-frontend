@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Factura Electrónica - Comercializadora XYZ</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    #factura-contenido, #factura-contenido * {
+      visibility: visible;
+    }
+    #factura-contenido {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      margin: 0;
+      padding: 20px;
+    }
+    .no-print {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body class="bg-gray-100">
+
+<div class="container mx-auto px-4 py-8">
+  <!-- Botones de acción (no se imprimen) -->
+  <div class="no-print mb-4 flex justify-end space-x-3">
+    <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+      <i class="fas fa-print mr-2"></i>Imprimir
+    </button>
+    <button onclick="descargarPDF()" class="bg-red-600 text-white px-4 py-2 rounded-lg">
+      <i class="fas fa-file-pdf mr-2"></i>Descargar PDF
+    </button>
+    <button onclick="window.close()" class="bg-gray-600 text-white px-4 py-2 rounded-lg">
+      <i class="fas fa-times mr-2"></i>Cerrar
+    </button>
+  </div>
+
+  <!-- Contenido de la Factura -->
+  <div id="factura-contenido" class="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
+    <!-- Encabezado con datos fiscales -->
+    <div class="border-b-2 border-gray-300 pb-4 mb-4">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold text-purple-600">Comercializadora XYZ</h1>
+          <p class="text-sm text-gray-600 mt-1">
+            <strong>NIT:</strong> 123456789<br>
+            <strong>Razón Social:</strong> COMERCIALIZADORA XYZ S.R.L.<br>
+            <strong>Dirección:</strong> Av. 16 de Julio #1234, La Paz - Bolivia<br>
+            <strong>Teléfono:</strong> (591) 2-1234567
+          </p>
+        </div>
+        <div class="text-right">
+          <div class="bg-gray-100 p-3 rounded-lg">
+            <p class="text-xs text-gray-500">Número de Factura</p>
+            <p class="text-2xl font-bold text-purple-600" id="factura-numero">001-001</p>
+            <p class="text-xs text-gray-500 mt-1">Código de Autorización</p>
+            <p class="text-sm font-mono" id="codigo-autorizacion">ABC-123-XYZ-789</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Datos del Cliente -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="border rounded-lg p-3">
+        <p class="text-xs text-gray-500 uppercase font-bold">Cliente</p>
+        <p class="font-semibold" id="cliente-nombre">-</p>
+        <p class="text-sm" id="cliente-nit">NIT/C.I.: -</p>
+      </div>
+      <div class="border rounded-lg p-3">
+        <p class="text-xs text-gray-500 uppercase font-bold">Factura</p>
+        <p class="font-semibold" id="factura-fecha">-</p>
+        <p class="text-sm" id="factura-hora">-</p>
+      </div>
+    </div>
+
+    <!-- Detalle de Productos -->
+    <div class="overflow-x-auto mb-6">
+      <table class="w-full border-collapse">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="border px-4 py-2 text-left">Cant.</th>
+            <th class="border px-4 py-2 text-left">Descripción</th>
+            <th class="border px-4 py-2 text-right">Precio Unit.</th>
+            <th class="border px-4 py-2 text-right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody id="detalle-productos"></tbody>
+        <tfoot class="bg-gray-50">
+          <tr>
+            <td colspan="3" class="border px-4 py-2 text-right font-bold">Subtotal:</td>
+            <td class="border px-4 py-2 text-right font-bold" id="subtotal">Bs. 0.00</td>
+          </tr>
+          <tr>
+            <td colspan="3" class="border px-4 py-2 text-right">IVA (13%):</td>
+            <td class="border px-4 py-2 text-right" id="iva">Bs. 0.00</td>
+          </tr>
+          <tr>
+            <td colspan="3" class="border px-4 py-2 text-right font-bold text-lg">TOTAL:</td>
+            <td class="border px-4 py-2 text-right font-bold text-lg text-purple-600" id="total">Bs. 0.00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Leyenda para montos menores -->
+    <div id="leyenda-consumo" class="text-center text-sm text-gray-500 italic mb-4 hidden">
+      * Consumo (Art. 42 Ley 843)
+    </div>
+
+    <!-- Código QR y pie de factura -->
+    <div class="border-t-2 border-gray-300 pt-4 mt-4">
+      <div class="flex justify-between items-center">
+        <div class="text-xs text-gray-500">
+          <p>★ Factura válida en línea</p>
+          <p class="font-mono mt-1">Código de Control: 8A7F3D9C2E1B5H4K</p>
+          <p class="mt-1">Fecha de emisión: <span id="fecha-emision"></span></p>
+        </div>
+        <div id="codigo-qr" class="w-24 h-24 bg-gray-100 flex items-center justify-center">
+          <i class="fas fa-qrcode text-5xl text-gray-400"></i>
+        </div>
+      </div>
+      <div class="text-center text-xs text-gray-400 mt-4">
+        <p>Esta factura es de carácter fiscal y respalda la transacción realizada.</p>
+        <p>Comercializadora XYZ - Autorización N° SIN 1234567890</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Obtener datos de la venta desde localStorage
+  const ventaData = JSON.parse(localStorage.getItem('venta_actual_factura'));
+  
+  function cargarFactura() {
+    if (!ventaData) {
+      alert('No hay datos de factura para mostrar');
+      window.close();
+      return;
+    }
+
+    // Generar número correlativo de factura
+    let ultimoNumero = localStorage.getItem('ultimo_numero_factura') || '001-001';
+    let [sucursal, numero] = ultimoNumero.split('-');
+    let nuevoNumero = parseInt(numero) + 1;
+    let nuevoCorrelativo = `${sucursal}-${nuevoNumero.toString().padStart(3, '0')}`;
+    localStorage.setItem('ultimo_numero_factura', nuevoCorrelativo);
+    
+    document.getElementById('factura-numero').innerText = nuevoCorrelativo;
+    document.getElementById('factura-fecha').innerText = ventaData.fecha || new Date().toLocaleDateString();
+    document.getElementById('factura-hora').innerText = ventaData.hora || new Date().toLocaleTimeString();
+    document.getElementById('fecha-emision').innerText = new Date().toLocaleString();
+    
+    // Datos del cliente
+    document.getElementById('cliente-nombre').innerText = ventaData.cliente_nombre || 'Cliente sin registrar';
+    const nitCliente = ventaData.cliente_nit || 'No registrado';
+    document.getElementById('cliente-nit').innerHTML = `<strong>NIT/C.I.:</strong> ${nitCliente}`;
+    
+    // Mostrar leyenda de consumo si el total es menor a 300
+    if (ventaData.total < 300) {
+      document.getElementById('leyenda-consumo').classList.remove('hidden');
+    }
+    
+    // Cargar productos
+    const tbody = document.getElementById('detalle-productos');
+    let subtotal = 0;
+    
+    tbody.innerHTML = ventaData.productos.map(p => {
+      const subtotalItem = p.cantidad * p.precio;
+      subtotal += subtotalItem;
+      return `
+        <tr>
+          <td class="border px-4 py-2">${p.cantidad}</td>
+          <td class="border px-4 py-2">${p.nombre}</td>
+          <td class="border px-4 py-2 text-right">Bs. ${p.precio.toFixed(2)}</td>
+          <td class="border px-4 py-2 text-right">Bs. ${subtotalItem.toFixed(2)}</td>
+        </tr>
+      `;
+    }).join('');
+    
+    const iva = subtotal * 0.13;
+    const total = subtotal + iva;
+    
+    document.getElementById('subtotal').innerText = `Bs. ${subtotal.toFixed(2)}`;
+    document.getElementById('iva').innerText = `Bs. ${iva.toFixed(2)}`;
+    document.getElementById('total').innerText = `Bs. ${total.toFixed(2)}`;
+    
+    // Si es mayor a 1000, mostrar advertencia de nominatividad
+    if (total >= 1000 && (!ventaData.cliente_nit || ventaData.cliente_nit === 'No registrado')) {
+      const advertencia = document.createElement('div');
+      advertencia.className = 'bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 mb-4 text-sm';
+      advertencia.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> <strong>Requisito Fiscal:</strong> Para montos mayores a Bs. 1,000 es obligatorio consignar NIT/C.I. del comprador.';
+      document.getElementById('factura-contenido').insertBefore(advertencia, document.getElementById('factura-contenido').children[2]);
+    }
+  }
+  
+  async function descargarPDF() {
+    const element = document.getElementById('factura-contenido');
+    const canvas = await html2canvas(element, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgWidth = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    pdf.save(`factura_${document.getElementById('factura-numero').innerText}.pdf`);
+  }
+  
+  cargarFactura();
+</script>
+</body>
+</html>

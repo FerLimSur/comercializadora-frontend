@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Cuenta - Comercializadora XYZ</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <div class="w-64 bg-green-800 text-white flex flex-col">
+    <div class="p-5 border-b border-green-700">
+      <div class="flex items-center space-x-3">
+        <i class="fas fa-user-circle text-2xl"></i>
+        <h2 class="text-xl font-bold">Mi Cuenta</h2>
+      </div>
+    </div>
+    <nav class="flex-1 py-4">
+      <a href="#" onclick="showSection('perfil')" class="flex items-center px-5 py-3 hover:bg-green-700 transition">
+        <i class="fas fa-user w-5 mr-3"></i> Mi Perfil
+      </a>
+      <a href="#" onclick="showSection('compras')" class="flex items-center px-5 py-3 hover:bg-green-700 transition">
+        <i class="fas fa-shopping-bag w-5 mr-3"></i> Mis Compras
+      </a>
+      <a href="#" onclick="showSection('descuentos')" class="flex items-center px-5 py-3 hover:bg-green-700 transition">
+        <i class="fas fa-tag w-5 mr-3"></i> Mis Descuentos
+      </a>
+    </nav>
+    <div class="p-4 border-t border-green-700">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm" id="cliente-name">Cliente</p>
+          <p class="text-xs text-green-300" id="cliente-email"></p>
+        </div>
+        <a href="index.html" class="text-green-300 hover:text-white">
+          <i class="fas fa-sign-out-alt"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto">
+    <div class="bg-white shadow-sm p-4 sticky top-0 z-10">
+      <h1 class="text-2xl font-bold text-gray-800" id="section-title">Mi Perfil</h1>
+    </div>
+
+    <div class="p-6" id="main-content">
+      <!-- Perfil Section -->
+      <div id="perfil-section">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-center mb-6">
+            <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="ml-6">
+              <h3 class="text-2xl font-bold" id="perfil-nombre"></h3>
+              <p class="text-gray-600" id="perfil-email"></p>
+              <p class="text-gray-600" id="perfil-telefono"></p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="border rounded-lg p-4">
+              <p class="text-gray-500">Fecha de Registro</p>
+              <p class="font-semibold" id="perfil-fecha"></p>
+            </div>
+            <div class="border rounded-lg p-4">
+              <p class="text-gray-500">Antigüedad</p>
+              <p class="font-semibold" id="perfil-antiguedad"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compras Section -->
+      <div id="compras-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-6">Historial de Compras</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-2 text-left">ID</th>
+                  <th class="px-4 py-2 text-left">Producto</th>
+                  <th class="px-4 py-2 text-left">Cantidad</th>
+                  <th class="px-4 py-2 text-left">Total</th>
+                  <th class="px-4 py-2 text-left">Vendedor</th>
+                  <th class="px-4 py-2 text-left">Fecha</th>
+                </tr>
+              </thead>
+              <tbody id="mis-compras">
+                <!-- Compras se cargarán dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Descuentos Section -->
+      <div id="descuentos-section" class="hidden">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-bold mb-6">Mis Beneficios por Antigüedad</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="border rounded-lg p-6 text-center">
+              <i class="fas fa-star text-3xl text-yellow-500 mb-3"></i>
+              <h4 class="font-bold">Nivel Bronce</h4>
+              <p class="text-sm text-gray-600">1 año de antigüedad</p>
+              <p class="text-green-600 font-bold mt-2" id="descuento-bronce">10% descuento</p>
+            </div>
+            <div class="border rounded-lg p-6 text-center">
+              <i class="fas fa-gem text-3xl text-gray-500 mb-3"></i>
+              <h4 class="font-bold">Nivel Plata</h4>
+              <p class="text-sm text-gray-600">3 años de antigüedad</p>
+              <p class="text-green-600 font-bold mt-2" id="descuento-plata">15% descuento</p>
+            </div>
+            <div class="border rounded-lg p-6 text-center">
+              <i class="fas fa-crown text-3xl text-yellow-600 mb-3"></i>
+              <h4 class="font-bold">Nivel Oro</h4>
+              <p class="text-sm text-gray-600">5 años de antigüedad</p>
+              <p class="text-green-600 font-bold mt-2" id="descuento-oro">20% descuento</p>
+            </div>
+          </div>
+          
+          <div class="mt-6 bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4">
+            <p class="text-center">
+              <i class="fas fa-info-circle text-green-600 mr-2"></i>
+              Los descuentos se aplican automáticamente en tus compras realizadas a través de nuestros vendedores.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Obtener datos
+  let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+  let ventas = JSON.parse(localStorage.getItem('ventas')) || [];
+
+  // Verificar autenticación
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  if (!currentUser || currentUser.role !== 'cliente') {
+    window.location.href = 'login.html';
+  }
+
+  // Obtener datos del cliente actual
+  const clienteActual = clientes.find(c => c.email === currentUser.username) || 
+    { nombre: currentUser.name, email: currentUser.username, fechaRegistro: new Date().toISOString() };
+
+  function actualizarPerfil() {
+    document.getElementById('cliente-name').innerText = clienteActual.nombre || clienteActual.name;
+    document.getElementById('cliente-email').innerText = clienteActual.email;
+    document.getElementById('perfil-nombre').innerText = clienteActual.nombre || clienteActual.name;
+    document.getElementById('perfil-email').innerText = clienteActual.email;
+    document.getElementById('perfil-telefono').innerText = clienteActual.telefono || 'No registrado';
+    
+    const fechaRegistro = new Date(clienteActual.fechaRegistro);
+    document.getElementById('perfil-fecha').innerText = fechaRegistro.toLocaleDateString();
+    
+    const añosAntiguedad = Math.floor((new Date() - fechaRegistro) / (1000 * 60 * 60 * 24 * 365));
+    document.getElementById('perfil-antiguedad').innerText = `${añosAntiguedad} año(s)`;
+  }
+
+  function cargarMisCompras() {
+    const misCompras = ventas.filter(v => v.cliente === (clienteActual.nombre || clienteActual.name));
+    const tbody = document.getElementById('mis-compras');
+    tbody.innerHTML = misCompras.map(v => `
+      <tr class="border-b">
+        <td class="px-4 py-2">${v.id}</td>
+        <td class="px-4 py-2">${v.producto}</td>
+        <td class="px-4 py-2">${v.cantidad}</td>
+        <td class="px-4 py-2">Bs. ${v.total}</td>
+        <td class="px-4 py-2">${v.vendedor}</td>
+        <td class="px-4 py-2">${v.fecha}</td>
+      </tr>
+    `).join('');
+    
+    if (misCompras.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">No has realizado ninguna compra aún</td></tr>';
+    }
+  }
+
+  function cargarDescuentos() {
+    const configDescuentos = JSON.parse(localStorage.getItem('configDescuentos')) || { año1: 10, año3: 15, año5: 20 };
+    document.getElementById('descuento-bronce').innerHTML = `${configDescuentos.año1}% descuento`;
+    document.getElementById('descuento-plata').innerHTML = `${configDescuentos.año3}% descuento`;
+    document.getElementById('descuento-oro').innerHTML = `${configDescuentos.año5}% descuento`;
+  }
+
+  function showSection(section) {
+    document.getElementById('perfil-section').classList.add('hidden');
+    document.getElementById('compras-section').classList.add('hidden');
+    document.getElementById('descuentos-section').classList.add('hidden');
+    
+    document.getElementById(`${section}-section`).classList.remove('hidden');
+    
+    const titles = {
+      perfil: 'Mi Perfil',
+      compras: 'Mis Compras',
+      descuentos: 'Mis Descuentos'
+    };
+    document.getElementById('section-title').innerText = titles[section];
+    
+    if (section === 'compras') cargarMisCompras();
+    if (section === 'descuentos') cargarDescuentos();
+  }
+
+  // Inicializar
+  actualizarPerfil();
+</script>
+</body>
+</html>
